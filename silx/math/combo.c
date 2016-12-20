@@ -1652,6 +1652,7 @@ static char __pyx_k_silx_math_combo[] = "silx.math.combo";
 static char __pyx_k_min_max_line_196[] = "min_max (line 196)";
 static char __pyx_k_Mean_of_the_array[] = "Mean of the array";
 static char __pyx_k_argmin_positive_2[] = "argmin_positive";
+static char __pyx_k_mean_std_line_317[] = "mean_std (line 317)";
 static char __pyx_k_Index_out_of_range[] = "Index out of range";
 static char __pyx_k_standard_deviation[] = "standard_deviation";
 static char __pyx_k_strided_and_direct[] = "<strided and direct>";
@@ -1687,6 +1688,7 @@ static char __pyx_k_itemsize_0_for_cython_array[] = "itemsize <= 0 for cython.ar
 static char __pyx_k_Expected_at_least_d_arguments[] = "Expected at least %d arguments";
 static char __pyx_k_unable_to_allocate_array_data[] = "unable to allocate array data.";
 static char __pyx_k_strided_and_direct_or_indirect[] = "<strided and direct or indirect>";
+static char __pyx_k_Computes_mean_and_estimation_of[] = "Computes mean and estimation of std and variance in a single pass.\n\n    NaNs are propagated.\n    Behavior with inf values differs from numpy equivalent functions.\n\n    Examples:\n\n    >>> import numpy\n    >>> data = numpy.arange(100.)\n\n    Usage as a function returning mean and std:\n\n    >>> mean, std = mean_std(data)\n\n    Usage as a function returning a result object to access all information:\n\n    >>> result = mean_std(data)\n    >>> result.mean, result.var\n    (49.5, 833.25)\n    >>> result.length, result.ddof\n    (100, 0)\n\n    See:\n\n    - http://www.johndcook.com/blog/standard_deviation/\n    - https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance\n\n    Welford, B. P.\n    Not on a method for calculating corrected sums of squares and products\n    Technometrics, Vol. 4, No. 3 (August 1962), pp. 419-420\n    American Statisical Association and American Society for Quality.\n    DOI: 10.2307/1266577\n\n    :param data: Array-like dataset\n    :param dtype:\n        Type to use in computing mean, std and variance.\n        Default: ``'float64'`` for integers, data type for floating data.\n        Only ``'float32'`` and ``'float64'`` types are valid.\n    :param int ddof:\n        Means Delta Degrees of Freedom.\n        The divisor used in calculations is ``(data.size - ddof)``.\n        Default: 0 (as in ``numpy.std``).\n    :returns: An object with mean, std and var attributes\n    :raises: ValueError if data is empty\n    ";
 static char __pyx_k_Index_of_the_first_occurence_of[] = "Index of the first occurence of the minimum value";
 static char __pyx_k_Object_storing_result_from_func[] = "Object storing result from :func:`min_max`";
 static char __pyx_k_Strictly_positive_minimum_value[] = "Strictly positive minimum value\n        \n        It is None if no value is strictly positive.\n        ";
@@ -1705,8 +1707,8 @@ static char __pyx_k_Invalid_mode_expected_c_or_fortr[] = "Invalid mode, expected
 static char __pyx_k_Means_Delta_Degrees_of_Freedom_p[] = "Means Delta Degrees of Freedom provided to mean_std";
 static char __pyx_k_Number_of_elements_that_where_pr[] = "Number of elements that where processed";
 static char __pyx_k_Out_of_bounds_on_buffer_access_a[] = "Out of bounds on buffer access (axis %d)";
-static char __pyx_k_Returns_min_max_and_optionally_s[] = "Returns min, max and optionally strictly positive min of data.\n\n    It also computes the indices of first occurence of min/max.\n\n    NaNs are ignored while computing min/max unless all data is NaNs,\n    in which case returned min/max are NaNs.\n\n    Examples:\n\n    >>> import numpy\n    >>> data = numpy.arange(10)\n\n    Usage as a function returning min and max:\n\n    >>> min_, max_ = min_max(data)\n\n    Usage as a function returning a result object to access all information:\n\n    >>> result = min_max(data)  # Do not get positive min\n    >>> result.minimum, result.argmin\n    0, 0\n    >>> result.maximum, result.argmax\n    9, 10\n    >>> result.min_positive, result.argmin_positive  # Not computed\n    None, None\n\n    Getting strictly positive min information:\n\n    >>> result = min_max(data, min_positive=True)\n    >>> result.min_positive, result.argmin_positive  # Computed\n    1, 1\n\n    :param data: Array-like dataset\n    :param bool min_positive: True to compute the positive min and argmin\n                              Default: False.\n    :returns: An object with minimum, maximum and min_positive attributes\n              and the indices of first occurence in the flattened data:\n              argmin, argmax and argmin_positive attributes.\n              If all data is <= 0 or min_positive argument is False, then\n              min_positive and argmin_positive are None.\n    :raises: ValueError if data is empty\n    ";
-static char __pyx_k_This_module_provides_combination[] = "This module provides combination of statistics as single operation.\n\nIt contains:\n\n- :func`min_max` that computes min/max (and optionally positive min)\n  and indices of first occurences (i.e., argmin/argmax) in a single pass.\n- :func:`mean_std` that computes mean and std in a single pass.\n";
+static char __pyx_k_Returns_min_max_and_optionally_s[] = "Returns min, max and optionally strictly positive min of data.\n\n    It also computes the indices of first occurence of min/max.\n\n    NaNs are ignored while computing min/max unless all data is NaNs,\n    in which case returned min/max are NaNs.\n\n    Examples:\n\n    >>> import numpy\n    >>> data = numpy.arange(10)\n\n    Usage as a function returning min and max:\n\n    >>> min_, max_ = min_max(data)\n\n    Usage as a function returning a result object to access all information:\n\n    >>> result = min_max(data)  # Do not get positive min\n    >>> result.minimum, result.argmin\n    (0, 0)\n    >>> result.maximum, result.argmax\n    (9, 10)\n    >>> result.min_positive, result.argmin_positive  # Not computed\n    (None, None)\n\n    Getting strictly positive min information:\n\n    >>> result = min_max(data, min_positive=True)\n    >>> result.min_positive, result.argmin_positive  # Computed\n    (1, 1)\n\n    :param data: Array-like dataset\n    :param bool min_positive: True to compute the positive min and argmin\n                              Default: False.\n    :returns: An object with minimum, maximum and min_positive attributes\n              and the indices of first occurence in the flattened data:\n              argmin, argmax and argmin_positive attributes.\n              If all data is <= 0 or min_positive argument is False, then\n              min_positive and argmin_positive are None.\n    :raises: ValueError if data is empty\n    ";
+static char __pyx_k_This_module_provides_combination[] = "This module provides combination of statistics as single operation.\n\nIt contains:\n\n- :func:`min_max` that computes min/max (and optionally positive min)\n  and indices of first occurences (i.e., argmin/argmax) in a single pass.\n- :func:`mean_std` that computes mean and std in a single pass.\n";
 static char __pyx_k_Unable_to_convert_item_to_object[] = "Unable to convert item to object";
 static char __pyx_k_got_differing_extents_in_dimensi[] = "got differing extents in dimension %d (got %d and %d)";
 static char __pyx_k_unable_to_allocate_shape_and_str[] = "unable to allocate shape and strides.";
@@ -1717,6 +1719,7 @@ static PyObject *__pyx_n_s_AttributeError;
 static PyObject *__pyx_kp_s_Buffer_view_does_not_expose_stri;
 static PyObject *__pyx_kp_s_Can_only_create_a_buffer_that_is;
 static PyObject *__pyx_kp_s_Cannot_index_with_type_s;
+static PyObject *__pyx_kp_u_Computes_mean_and_estimation_of;
 static PyObject *__pyx_n_s_Ellipsis;
 static PyObject *__pyx_kp_s_Empty_shape_tuple_for_cython_arr;
 static PyObject *__pyx_kp_s_Estimation_of_the_standard_devia;
@@ -1838,6 +1841,7 @@ static PyObject *__pyx_n_s_mean;
 static PyObject *__pyx_n_s_mean_2;
 static PyObject *__pyx_n_s_mean_std;
 static PyObject *__pyx_n_s_mean_std_2;
+static PyObject *__pyx_kp_u_mean_std_line_317;
 static PyObject *__pyx_n_s_memview;
 static PyObject *__pyx_n_s_metaclass;
 static PyObject *__pyx_n_s_min_index;
@@ -2743,10 +2747,10 @@ static PyObject *__pyx_pf_4silx_4math_5combo__min_max(CYTHON_UNUSED PyObject *__
   char __pyx_v_kind;
   int __pyx_v_unsigned_int_is_signed;
   int __pyx_v_long_is_signed;
-  int __pyx_v_unsigned_char_is_signed;
-  int __pyx_v_unsigned_long_is_signed;
   int __pyx_v_short_is_signed;
   int __pyx_v_char_is_signed;
+  int __pyx_v_unsigned_char_is_signed;
+  int __pyx_v_unsigned_long_is_signed;
   int __pyx_v_int_is_signed;
   int __pyx_v_unsigned_short_is_signed;
   PyObject *__pyx_v_arg = NULL;
@@ -2854,10 +2858,10 @@ static PyObject *__pyx_pf_4silx_4math_5combo__min_max(CYTHON_UNUSED PyObject *__
   __pyx_v_itemsize = -1;
   __pyx_v_unsigned_int_is_signed = (((unsigned int)-1) < 0);
   __pyx_v_long_is_signed = (((long)-1) < 0);
-  __pyx_v_unsigned_char_is_signed = (((unsigned char)-1) < 0);
-  __pyx_v_unsigned_long_is_signed = (((unsigned long)-1) < 0);
   __pyx_v_short_is_signed = (((short)-1) < 0);
   __pyx_v_char_is_signed = (((char)-1) < 0);
+  __pyx_v_unsigned_char_is_signed = (((unsigned char)-1) < 0);
+  __pyx_v_unsigned_long_is_signed = (((unsigned long)-1) < 0);
   __pyx_v_int_is_signed = (((int)-1) < 0);
   __pyx_v_unsigned_short_is_signed = (((unsigned short)-1) < 0);
   if (unlikely(__pyx_v_args == Py_None)) {
@@ -11991,7 +11995,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_26_min_max(CYTHON_UNUSED PyObject *
 
 /* Python wrapper */
 static PyObject *__pyx_pw_4silx_4math_5combo_3min_max(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_4silx_4math_5combo_2min_max[] = "min_max(data, bool min_positive=False)\nReturns min, max and optionally strictly positive min of data.\n\n    It also computes the indices of first occurence of min/max.\n\n    NaNs are ignored while computing min/max unless all data is NaNs,\n    in which case returned min/max are NaNs.\n\n    Examples:\n\n    >>> import numpy\n    >>> data = numpy.arange(10)\n\n    Usage as a function returning min and max:\n\n    >>> min_, max_ = min_max(data)\n\n    Usage as a function returning a result object to access all information:\n\n    >>> result = min_max(data)  # Do not get positive min\n    >>> result.minimum, result.argmin\n    0, 0\n    >>> result.maximum, result.argmax\n    9, 10\n    >>> result.min_positive, result.argmin_positive  # Not computed\n    None, None\n\n    Getting strictly positive min information:\n\n    >>> result = min_max(data, min_positive=True)\n    >>> result.min_positive, result.argmin_positive  # Computed\n    1, 1\n\n    :param data: Array-like dataset\n    :param bool min_positive: True to compute the positive min and argmin\n                              Default: False.\n    :returns: An object with minimum, maximum and min_positive attributes\n              and the indices of first occurence in the flattened data:\n              argmin, argmax and argmin_positive attributes.\n              If all data is <= 0 or min_positive argument is False, then\n              min_positive and argmin_positive are None.\n    :raises: ValueError if data is empty\n    ";
+static char __pyx_doc_4silx_4math_5combo_2min_max[] = "min_max(data, bool min_positive=False)\nReturns min, max and optionally strictly positive min of data.\n\n    It also computes the indices of first occurence of min/max.\n\n    NaNs are ignored while computing min/max unless all data is NaNs,\n    in which case returned min/max are NaNs.\n\n    Examples:\n\n    >>> import numpy\n    >>> data = numpy.arange(10)\n\n    Usage as a function returning min and max:\n\n    >>> min_, max_ = min_max(data)\n\n    Usage as a function returning a result object to access all information:\n\n    >>> result = min_max(data)  # Do not get positive min\n    >>> result.minimum, result.argmin\n    (0, 0)\n    >>> result.maximum, result.argmax\n    (9, 10)\n    >>> result.min_positive, result.argmin_positive  # Not computed\n    (None, None)\n\n    Getting strictly positive min information:\n\n    >>> result = min_max(data, min_positive=True)\n    >>> result.min_positive, result.argmin_positive  # Computed\n    (1, 1)\n\n    :param data: Array-like dataset\n    :param bool min_positive: True to compute the positive min and argmin\n                              Default: False.\n    :returns: An object with minimum, maximum and min_positive attributes\n              and the indices of first occurence in the flattened data:\n              argmin, argmax and argmin_positive attributes.\n              If all data is <= 0 or min_positive argument is False, then\n              min_positive and argmin_positive are None.\n    :raises: ValueError if data is empty\n    ";
 static PyMethodDef __pyx_mdef_4silx_4math_5combo_3min_max = {"min_max", (PyCFunction)__pyx_pw_4silx_4math_5combo_3min_max, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_5combo_2min_max};
 static PyObject *__pyx_pw_4silx_4math_5combo_3min_max(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_data = 0;
@@ -21455,7 +21459,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_68_mean_std(CYTHON_UNUSED PyObject 
 
 /* Python wrapper */
 static PyObject *__pyx_pw_4silx_4math_5combo_7mean_std(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_4silx_4math_5combo_6mean_std[] = "mean_std(data, dtype=None, unsigned int ddof=0)\nComputes mean and estimation of std and variance in a single pass.\n\n    NaNs are propagated.\n    Behavior with inf values differs from numpy equivalent functions.\n\n    See: http://www.johndcook.com/blog/standard_deviation/\n    See: https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance\n\n    Welford, B. P.\n    Not on a method for calculating corrected sums of squares and products\n    Technometrics, Vol. 4, No. 3 (August 1962), pp. 419-420\n    American Statisical Association and American Society for Quality.\n    DOI: 10.2307/1266577\n\n    :param data: Array-like dataset\n    :param dtype:\n        Type to use in computing mean, std and variance.\n        Default: float64 for integers, data type for floating data.\n        Only 'float32' and 'float64' types are valid.\n    :param int ddof:\n        Means Delta Degrees of Freedom.\n        The divisor used in calculations is data.size - ddof.\n        Default: 0 (as in numpy.std).\n    :returns: An object with mean, std and var attributes\n    :raises: ValueError if data is empty\n    ";
+static char __pyx_doc_4silx_4math_5combo_6mean_std[] = "mean_std(data, dtype=None, unsigned int ddof=0)\nComputes mean and estimation of std and variance in a single pass.\n\n    NaNs are propagated.\n    Behavior with inf values differs from numpy equivalent functions.\n\n    Examples:\n\n    >>> import numpy\n    >>> data = numpy.arange(100.)\n\n    Usage as a function returning mean and std:\n\n    >>> mean, std = mean_std(data)\n\n    Usage as a function returning a result object to access all information:\n\n    >>> result = mean_std(data)\n    >>> result.mean, result.var\n    (49.5, 833.25)\n    >>> result.length, result.ddof\n    (100, 0)\n\n    See:\n\n    - http://www.johndcook.com/blog/standard_deviation/\n    - https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance\n\n    Welford, B. P.\n    Not on a method for calculating corrected sums of squares and products\n    Technometrics, Vol. 4, No. 3 (August 1962), pp. 419-420\n    American Statisical Association and American Society for Quality.\n    DOI: 10.2307/1266577\n\n    :param data: Array-like dataset\n    :param dtype:\n        Type to use in computing mean, std and variance.\n        Default: ``'float64'`` for integers, data type for floating data.\n        Only ``'float32'`` and ``'float64'`` types are valid.\n    :param int ddof:\n        Means Delta Degrees of Freedom.\n        The divisor used in calculations is ``(data.size - ddof)``.\n        Default: 0 (as in ``numpy.std``).\n    :returns: An object with mean, std and var attributes\n    :raises: ValueError if data is empty\n    ";
 static PyMethodDef __pyx_mdef_4silx_4math_5combo_7mean_std = {"mean_std", (PyCFunction)__pyx_pw_4silx_4math_5combo_7mean_std, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4silx_4math_5combo_6mean_std};
 static PyObject *__pyx_pw_4silx_4math_5combo_7mean_std(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_data = 0;
@@ -21559,7 +21563,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_6mean_std(CYTHON_UNUSED PyObject *_
   __Pyx_INCREF(__pyx_v_data);
   __Pyx_INCREF(__pyx_v_dtype);
 
-  /* "silx/math/combo.pyx":345
+  /* "silx/math/combo.pyx":364
  *     """
  *     cdef:
  *         bint is_double = True             # <<<<<<<<<<<<<<
@@ -21568,16 +21572,16 @@ static PyObject *__pyx_pf_4silx_4math_5combo_6mean_std(CYTHON_UNUSED PyObject *_
  */
   __pyx_v_is_double = 1;
 
-  /* "silx/math/combo.pyx":347
+  /* "silx/math/combo.pyx":366
  *         bint is_double = True
  * 
  *     data = numpy.asanyarray(data).ravel()             # <<<<<<<<<<<<<<
  * 
  *     # Select the dtype to use to compute mean and std
  */
-  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_numpy); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 347; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_numpy); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 366; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_asanyarray); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 347; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_asanyarray); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 366; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __pyx_t_3 = NULL;
@@ -21591,21 +21595,21 @@ static PyObject *__pyx_pf_4silx_4math_5combo_6mean_std(CYTHON_UNUSED PyObject *_
     }
   }
   if (!__pyx_t_3) {
-    __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_v_data); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 347; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_v_data); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 366; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_2);
   } else {
-    __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 347; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 366; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_5);
     PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_3); __Pyx_GIVEREF(__pyx_t_3); __pyx_t_3 = NULL;
     __Pyx_INCREF(__pyx_v_data);
     PyTuple_SET_ITEM(__pyx_t_5, 0+1, __pyx_v_data);
     __Pyx_GIVEREF(__pyx_v_data);
-    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_5, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 347; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_5, NULL); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 366; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   }
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_ravel); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 347; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_ravel); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 366; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_t_2 = NULL;
@@ -21619,17 +21623,17 @@ static PyObject *__pyx_pf_4silx_4math_5combo_6mean_std(CYTHON_UNUSED PyObject *_
     }
   }
   if (__pyx_t_2) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 347; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_2); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 366; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   } else {
-    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_4); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 347; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_4); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 366; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF_SET(__pyx_v_data, __pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "silx/math/combo.pyx":350
+  /* "silx/math/combo.pyx":369
  * 
  *     # Select the dtype to use to compute mean and std
  *     if dtype is None:             # <<<<<<<<<<<<<<
@@ -21640,23 +21644,23 @@ static PyObject *__pyx_pf_4silx_4math_5combo_6mean_std(CYTHON_UNUSED PyObject *_
   __pyx_t_7 = (__pyx_t_6 != 0);
   if (__pyx_t_7) {
 
-    /* "silx/math/combo.pyx":351
+    /* "silx/math/combo.pyx":370
  *     # Select the dtype to use to compute mean and std
  *     if dtype is None:
  *         if data.dtype.name == 'float32':             # <<<<<<<<<<<<<<
  *             is_double = False
  *     else:
  */
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_data, __pyx_n_s_dtype); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 351; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_data, __pyx_n_s_dtype); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 370; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_name); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 351; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_name); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 370; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __pyx_t_7 = (__Pyx_PyString_Equals(__pyx_t_4, __pyx_n_s_float32, Py_EQ)); if (unlikely(__pyx_t_7 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 351; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_7 = (__Pyx_PyString_Equals(__pyx_t_4, __pyx_n_s_float32, Py_EQ)); if (unlikely(__pyx_t_7 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 370; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     if (__pyx_t_7) {
 
-      /* "silx/math/combo.pyx":352
+      /* "silx/math/combo.pyx":371
  *     if dtype is None:
  *         if data.dtype.name == 'float32':
  *             is_double = False             # <<<<<<<<<<<<<<
@@ -21671,16 +21675,16 @@ static PyObject *__pyx_pf_4silx_4math_5combo_6mean_std(CYTHON_UNUSED PyObject *_
   }
   /*else*/ {
 
-    /* "silx/math/combo.pyx":354
+    /* "silx/math/combo.pyx":373
  *             is_double = False
  *     else:
  *         dtype = numpy.dtype(dtype)             # <<<<<<<<<<<<<<
  *         assert dtype.kind == 'f'
  *         if dtype.name != 'float64':
  */
-    __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_numpy); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 354; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_numpy); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 373; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_dtype); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 354; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_dtype); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 373; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     __pyx_t_1 = NULL;
@@ -21694,16 +21698,16 @@ static PyObject *__pyx_pf_4silx_4math_5combo_6mean_std(CYTHON_UNUSED PyObject *_
       }
     }
     if (!__pyx_t_1) {
-      __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_v_dtype); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 354; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_v_dtype); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 373; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_4);
     } else {
-      __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 354; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 373; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_5);
       PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_1); __Pyx_GIVEREF(__pyx_t_1); __pyx_t_1 = NULL;
       __Pyx_INCREF(__pyx_v_dtype);
       PyTuple_SET_ITEM(__pyx_t_5, 0+1, __pyx_v_dtype);
       __Pyx_GIVEREF(__pyx_v_dtype);
-      __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_5, NULL); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 354; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_5, NULL); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 373; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_4);
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     }
@@ -21711,7 +21715,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_6mean_std(CYTHON_UNUSED PyObject *_
     __Pyx_DECREF_SET(__pyx_v_dtype, __pyx_t_4);
     __pyx_t_4 = 0;
 
-    /* "silx/math/combo.pyx":355
+    /* "silx/math/combo.pyx":374
  *     else:
  *         dtype = numpy.dtype(dtype)
  *         assert dtype.kind == 'f'             # <<<<<<<<<<<<<<
@@ -21720,31 +21724,31 @@ static PyObject *__pyx_pf_4silx_4math_5combo_6mean_std(CYTHON_UNUSED PyObject *_
  */
     #ifndef CYTHON_WITHOUT_ASSERTIONS
     if (unlikely(!Py_OptimizeFlag)) {
-      __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_dtype, __pyx_n_s_kind); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 355; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_dtype, __pyx_n_s_kind); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 374; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_GOTREF(__pyx_t_4);
-      __pyx_t_7 = (__Pyx_PyString_Equals(__pyx_t_4, __pyx_n_s_f, Py_EQ)); if (unlikely(__pyx_t_7 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 355; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+      __pyx_t_7 = (__Pyx_PyString_Equals(__pyx_t_4, __pyx_n_s_f, Py_EQ)); if (unlikely(__pyx_t_7 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 374; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
       if (unlikely(!__pyx_t_7)) {
         PyErr_SetNone(PyExc_AssertionError);
-        {__pyx_filename = __pyx_f[0]; __pyx_lineno = 355; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+        {__pyx_filename = __pyx_f[0]; __pyx_lineno = 374; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
       }
     }
     #endif
 
-    /* "silx/math/combo.pyx":356
+    /* "silx/math/combo.pyx":375
  *         dtype = numpy.dtype(dtype)
  *         assert dtype.kind == 'f'
  *         if dtype.name != 'float64':             # <<<<<<<<<<<<<<
  *             is_double = False
  * 
  */
-    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_dtype, __pyx_n_s_name); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 356; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_dtype, __pyx_n_s_name); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 375; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_7 = (__Pyx_PyString_Equals(__pyx_t_4, __pyx_n_s_float64, Py_NE)); if (unlikely(__pyx_t_7 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 356; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_7 = (__Pyx_PyString_Equals(__pyx_t_4, __pyx_n_s_float64, Py_NE)); if (unlikely(__pyx_t_7 < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 375; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     if (__pyx_t_7) {
 
-      /* "silx/math/combo.pyx":357
+      /* "silx/math/combo.pyx":376
  *         assert dtype.kind == 'f'
  *         if dtype.name != 'float64':
  *             is_double = False             # <<<<<<<<<<<<<<
@@ -21758,7 +21762,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_6mean_std(CYTHON_UNUSED PyObject *_
   }
   __pyx_L3:;
 
-  /* "silx/math/combo.pyx":359
+  /* "silx/math/combo.pyx":378
  *             is_double = False
  * 
  *     if is_double:             # <<<<<<<<<<<<<<
@@ -21768,7 +21772,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_6mean_std(CYTHON_UNUSED PyObject *_
   __pyx_t_7 = (__pyx_v_is_double != 0);
   if (__pyx_t_7) {
 
-    /* "silx/math/combo.pyx":360
+    /* "silx/math/combo.pyx":379
  * 
  *     if is_double:
  *         return _mean_std(data, <double> 0., ddof)             # <<<<<<<<<<<<<<
@@ -21776,11 +21780,11 @@ static PyObject *__pyx_pf_4silx_4math_5combo_6mean_std(CYTHON_UNUSED PyObject *_
  *         return _mean_std(data, <float> 0., ddof)
  */
     __Pyx_XDECREF(__pyx_r);
-    __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_mean_std); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 360; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_mean_std); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 379; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_5 = PyFloat_FromDouble(((double)0.)); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 360; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_5 = PyFloat_FromDouble(((double)0.)); if (unlikely(!__pyx_t_5)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 379; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_5);
-    __pyx_t_1 = __Pyx_PyInt_From_unsigned_int(__pyx_v_ddof); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 360; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyInt_From_unsigned_int(__pyx_v_ddof); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 379; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
     __pyx_t_3 = NULL;
     __pyx_t_8 = 0;
@@ -21794,7 +21798,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_6mean_std(CYTHON_UNUSED PyObject *_
         __pyx_t_8 = 1;
       }
     }
-    __pyx_t_9 = PyTuple_New(3+__pyx_t_8); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 360; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_9 = PyTuple_New(3+__pyx_t_8); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 379; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_9);
     if (__pyx_t_3) {
       PyTuple_SET_ITEM(__pyx_t_9, 0, __pyx_t_3); __Pyx_GIVEREF(__pyx_t_3); __pyx_t_3 = NULL;
@@ -21808,7 +21812,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_6mean_std(CYTHON_UNUSED PyObject *_
     __Pyx_GIVEREF(__pyx_t_1);
     __pyx_t_5 = 0;
     __pyx_t_1 = 0;
-    __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_9, NULL); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 360; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_9, NULL); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 379; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
@@ -21818,17 +21822,17 @@ static PyObject *__pyx_pf_4silx_4math_5combo_6mean_std(CYTHON_UNUSED PyObject *_
   }
   /*else*/ {
 
-    /* "silx/math/combo.pyx":362
+    /* "silx/math/combo.pyx":381
  *         return _mean_std(data, <double> 0., ddof)
  *     else:
  *         return _mean_std(data, <float> 0., ddof)             # <<<<<<<<<<<<<<
  */
     __Pyx_XDECREF(__pyx_r);
-    __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_mean_std); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 362; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_mean_std); if (unlikely(!__pyx_t_2)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 381; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_9 = PyFloat_FromDouble(((float)0.)); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 362; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_9 = PyFloat_FromDouble(((float)0.)); if (unlikely(!__pyx_t_9)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 381; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_9);
-    __pyx_t_1 = __Pyx_PyInt_From_unsigned_int(__pyx_v_ddof); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 362; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_1 = __Pyx_PyInt_From_unsigned_int(__pyx_v_ddof); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 381; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_1);
     __pyx_t_5 = NULL;
     __pyx_t_8 = 0;
@@ -21842,7 +21846,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_6mean_std(CYTHON_UNUSED PyObject *_
         __pyx_t_8 = 1;
       }
     }
-    __pyx_t_3 = PyTuple_New(3+__pyx_t_8); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 362; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_3 = PyTuple_New(3+__pyx_t_8); if (unlikely(!__pyx_t_3)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 381; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_3);
     if (__pyx_t_5) {
       PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_5); __Pyx_GIVEREF(__pyx_t_5); __pyx_t_5 = NULL;
@@ -21856,7 +21860,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_6mean_std(CYTHON_UNUSED PyObject *_
     __Pyx_GIVEREF(__pyx_t_1);
     __pyx_t_9 = 0;
     __pyx_t_1 = 0;
-    __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_3, NULL); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 362; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_3, NULL); if (unlikely(!__pyx_t_4)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 381; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
@@ -33208,6 +33212,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_kp_s_Buffer_view_does_not_expose_stri, __pyx_k_Buffer_view_does_not_expose_stri, sizeof(__pyx_k_Buffer_view_does_not_expose_stri), 0, 0, 1, 0},
   {&__pyx_kp_s_Can_only_create_a_buffer_that_is, __pyx_k_Can_only_create_a_buffer_that_is, sizeof(__pyx_k_Can_only_create_a_buffer_that_is), 0, 0, 1, 0},
   {&__pyx_kp_s_Cannot_index_with_type_s, __pyx_k_Cannot_index_with_type_s, sizeof(__pyx_k_Cannot_index_with_type_s), 0, 0, 1, 0},
+  {&__pyx_kp_u_Computes_mean_and_estimation_of, __pyx_k_Computes_mean_and_estimation_of, sizeof(__pyx_k_Computes_mean_and_estimation_of), 0, 1, 0, 0},
   {&__pyx_n_s_Ellipsis, __pyx_k_Ellipsis, sizeof(__pyx_k_Ellipsis), 0, 0, 1, 1},
   {&__pyx_kp_s_Empty_shape_tuple_for_cython_arr, __pyx_k_Empty_shape_tuple_for_cython_arr, sizeof(__pyx_k_Empty_shape_tuple_for_cython_arr), 0, 0, 1, 0},
   {&__pyx_kp_s_Estimation_of_the_standard_devia, __pyx_k_Estimation_of_the_standard_devia, sizeof(__pyx_k_Estimation_of_the_standard_devia), 0, 0, 1, 0},
@@ -33329,6 +33334,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_mean_2, __pyx_k_mean_2, sizeof(__pyx_k_mean_2), 0, 0, 1, 1},
   {&__pyx_n_s_mean_std, __pyx_k_mean_std, sizeof(__pyx_k_mean_std), 0, 0, 1, 1},
   {&__pyx_n_s_mean_std_2, __pyx_k_mean_std_2, sizeof(__pyx_k_mean_std_2), 0, 0, 1, 1},
+  {&__pyx_kp_u_mean_std_line_317, __pyx_k_mean_std_line_317, sizeof(__pyx_k_mean_std_line_317), 0, 1, 0, 0},
   {&__pyx_n_s_memview, __pyx_k_memview, sizeof(__pyx_k_memview), 0, 0, 1, 1},
   {&__pyx_n_s_metaclass, __pyx_k_metaclass, sizeof(__pyx_k_metaclass), 0, 0, 1, 1},
   {&__pyx_n_s_min_index, __pyx_k_min_index, sizeof(__pyx_k_min_index), 0, 0, 1, 1},
@@ -34745,6 +34751,7 @@ PyMODINIT_FUNC PyInit_combo(void)
   __pyx_t_6 = PyDict_New(); if (unlikely(!__pyx_t_6)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_6);
   if (PyDict_SetItem(__pyx_t_6, __pyx_kp_u_min_max_line_196, __pyx_kp_u_Returns_min_max_and_optionally_s) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  if (PyDict_SetItem(__pyx_t_6, __pyx_kp_u_mean_std_line_317, __pyx_kp_u_Computes_mean_and_estimation_of) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_test, __pyx_t_6) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
 
