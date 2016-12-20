@@ -36,7 +36,7 @@ __license__ = "MIT"
 __date__ = "20/12/2016"
 
 cimport cython
-from libc.math cimport isnan, sqrt
+from libc.math cimport isnan, sqrt, NAN
 
 import numpy
 
@@ -277,17 +277,12 @@ class _MeanStdResult(object):
 @cython.boundscheck(False)
 @cython.wraparound(False)
 @cython.cdivision(True)
-def _mean_std(_number[:] data, cython.floating dtype, unsigned int ddof):
-    """See :func:`mean_std` for documentation.
-
-    The dtype argument is only there to use fused types to avoid duplicating
-    code for float32 and float64 implementation...
-    A better solution would be needed
-    """
+def _mean_std_f32(_number[:] data, unsigned int ddof):
+    """See :func:`mean_std` for documentation."""
     cdef:
         unsigned int length, index
-        cython.floating mean, M2, delta
-        cython.floating variance, standard_deviation
+        float value, mean, M2, delta
+        float variance, standard_deviation
 
     length = len(data)
 
@@ -304,8 +299,42 @@ def _mean_std(_number[:] data, cython.floating dtype, unsigned int ddof):
         M2 += delta * (value - mean)
 
     if length <= ddof:
-        variance = float('nan')
-        standard_deviation = float('nan')
+        variance = NAN
+        standard_deviation = NAN
+    else:
+        variance = M2 / (length - ddof)
+        standard_deviation = sqrt(variance)
+
+    return _MeanStdResult(mean, standard_deviation, variance, length, ddof)
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+@cython.cdivision(True)
+def _mean_std_f64(_number[:] data, unsigned int ddof):
+    """See :func:`mean_std` for documentation."""
+    cdef:
+        unsigned int length, index
+        double value, mean, M2, delta
+        double variance, standard_deviation
+
+    length = len(data)
+
+    if length == 0:
+        raise ValueError('Zero-size array')
+
+    mean = 0
+    M2 = 0
+
+    for index in range(length):
+        value = data[index]
+        delta = value - mean
+        mean += delta / (index + 1)
+        M2 += delta * (value - mean)
+
+    if length <= ddof:
+        variance = NAN
+        standard_deviation = NAN
     else:
         variance = M2 / (length - ddof)
         standard_deviation = sqrt(variance)
@@ -376,6 +405,6 @@ def mean_std(data not None, dtype=None, unsigned int ddof=0):
             is_double = False
 
     if is_double:
-        return _mean_std(data, <double> 0., ddof)
+        return _mean_std_f64(data, ddof)
     else:
-        return _mean_std(data, <float> 0., ddof)
+        return _mean_std_f32(data, ddof)
