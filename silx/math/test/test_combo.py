@@ -36,16 +36,17 @@ import numpy
 
 from silx.test.utils import ParametricTestCase
 
-from silx.math.combo import min_max
+from silx.math.combo import min_max, mean_std
+
+
+FLOATING_DTYPES = 'float32', 'float64'
+SIGNED_INT_DTYPES = 'uint8', 'uint16', 'uint32', 'uint64'
+UNSIGNED_INT_DTYPES = 'uint8', 'uint16', 'uint32', 'uint64'
+DTYPES = FLOATING_DTYPES + SIGNED_INT_DTYPES + UNSIGNED_INT_DTYPES
 
 
 class TestMinMax(ParametricTestCase):
     """Tests of min max combo"""
-
-    FLOATING_DTYPES = 'float32', 'float64'
-    SIGNED_INT_DTYPES = 'uint8', 'uint16', 'uint32', 'uint64'
-    UNSIGNED_INT_DTYPES = 'uint8', 'uint16', 'uint32', 'uint64'
-    DTYPES = FLOATING_DTYPES + SIGNED_INT_DTYPES + UNSIGNED_INT_DTYPES
 
     def _test_min_max(self, data, min_positive):
         """Compare min_max with numpy for the given dataset
@@ -92,12 +93,12 @@ class TestMinMax(ParametricTestCase):
         """Test min_max with different numpy.arange datasets."""
         size = 1000
 
-        for dtype in self.DTYPES:
+        for dtype in DTYPES:
 
             tests = {
                 '0 to N': (0, 1),
                 'N-1 to 0': (size - 1, -1)}
-            if dtype not in self.UNSIGNED_INT_DTYPES:
+            if dtype not in UNSIGNED_INT_DTYPES:
                 tests['N/2 to -N/2'] = size // 2, -1
                 tests['0 to -N'] = 0, -1
 
@@ -113,7 +114,7 @@ class TestMinMax(ParametricTestCase):
 
     def test_nodata(self):
         """Test min_max with None and empty array"""
-        for dtype in self.DTYPES:
+        for dtype in DTYPES:
             with self.subTest(dtype=dtype):
                 with self.assertRaises(TypeError):
                     min_max(None)
@@ -133,7 +134,7 @@ class TestMinMax(ParametricTestCase):
             (1.0, float('nan'), -1.0),  # Some NaN
         ]
 
-        for dtype in self.FLOATING_DTYPES:
+        for dtype in FLOATING_DTYPES:
             for data in tests:
                 with self.subTest(dtype=dtype, data=data):
                     data = numpy.array(data, dtype=dtype)
@@ -150,17 +151,87 @@ class TestMinMax(ParametricTestCase):
             (float('inf'), float('nan'), float('-inf')),  # +/-inf, nan center
         ]
 
-        for dtype in self.FLOATING_DTYPES:
+        for dtype in FLOATING_DTYPES:
             for data in tests:
                 with self.subTest(dtype=dtype, data=data):
                     data = numpy.array(data, dtype=dtype)
                     self._test_min_max(data, min_positive=True)
 
 
+class TestMeanStd(ParametricTestCase):
+    """Test mean_std combo against numpy"""
+
+    def _test_mean_std(self, data, ddof):
+        """Compare mean_std with numpy for the given dataset
+
+        :param numpy.ndarray data: Data set to use for test
+        :param int ddof: Means Delta Degrees of Freedom std argument
+        """
+        result = mean_std(data, ddof=ddof)
+        self.assertEqual(result.ddof, ddof)
+        self.assertEqual(result.length, data.size)
+
+        mean = numpy.mean(data)
+        if numpy.isnan(mean):
+            self.assertTrue(numpy.isnan(result.mean))
+        else:
+            self.assertEqual(result.mean, mean)
+
+        if numpy.any(numpy.isnan(data)) or len(data) <= ddof:
+            self.assertTrue(numpy.isnan(result.std))
+            self.assertTrue(numpy.isnan(result.var))
+
+        else:
+            std = numpy.std(data, ddof=ddof)
+            self.assertTrue(numpy.allclose(result.std, std))
+
+            var = numpy.var(data, ddof=ddof)
+            self.assertTrue(numpy.allclose(result.var, var))
+
+    def test(self):
+        """Test Mean_std with different datasets"""
+
+        for dtype in FLOATING_DTYPES:
+            for ddof in (0., 1.):
+                with self.subTest(dtype=dtype, ddof=ddof):
+                    data = numpy.arange(1000., dtype=dtype)
+                    self._test_mean_std(data, ddof)
+
+    def test_no_data(self):
+        """Test mean_std without data of with too small data"""
+        for dtype in FLOATING_DTYPES:
+            with self.subTest(dtype=dtype):
+                with self.assertRaises(TypeError):
+                    mean_std(None)
+
+                data = numpy.array((), dtype=dtype)
+                with self.assertRaises(ValueError):
+                    mean_std(data)
+
+                # Not enough data for ddof
+                data = numpy.array((1.,), dtype=dtype)
+                self._test_mean_std(data, ddof=1)
+
+    def test_nan_data(self):
+        """Test min_max with NaN in data"""
+        tests = [
+            (float('nan'), float('nan')),  # All NaNs
+            (2.0, float('nan'), 1.0),  # Some NaN
+        ]
+
+        for dtype in FLOATING_DTYPES:
+            for data in tests:
+                with self.subTest(dtype=dtype, data=data):
+                    data = numpy.array(data, dtype=dtype)
+                    self._test_mean_std(data, ddof=0)
+
+
 def suite():
     test_suite = unittest.TestSuite()
     test_suite.addTests(
         unittest.defaultTestLoader.loadTestsFromTestCase(TestMinMax))
+    test_suite.addTests(
+        unittest.defaultTestLoader.loadTestsFromTestCase(TestMeanStd))
     return test_suite
 
 

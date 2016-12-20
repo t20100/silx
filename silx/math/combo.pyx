@@ -24,8 +24,11 @@
 # ###########################################################################*/
 """This module provides combination of statistics as single operation.
 
-For now it provides min/max (and optionally positive min) and indices
-of first occurences (i.e., argmin/argmax) in a single pass.
+It contains:
+
+- :func`min_max` that computes min/max (and optionally positive min)
+  and indices of first occurences (i.e., argmin/argmax) in a single pass.
+- :func:`mean_std` that computes mean and std in a single pass.
 """
 
 __authors__ = ["T. Vincent"]
@@ -33,7 +36,7 @@ __license__ = "MIT"
 __date__ = "20/12/2016"
 
 cimport cython
-from libc.math cimport isnan
+from libc.math cimport isnan, sqrt
 
 import numpy
 
@@ -50,6 +53,8 @@ ctypedef fused _number:
     unsigned int
     unsigned long
 
+
+### Min Max Positive Min combo ###
 
 class _MinMaxResult(object):
     """Object storing result from :func:`min_max`"""
@@ -233,3 +238,99 @@ def min_max(data not None, bint min_positive=False):
     """
     return _min_max(numpy.asanyarray(data).ravel(), min_positive)
 
+
+### Mean + Std combo ###
+
+class _MeanStdResult(object):
+    """Object storing result from :func:`mean_std`"""
+
+    def __init__(self, mean, std, var, length, ddof):
+        self._mean = mean
+        self._std = std
+        self._var = var
+        self._length = length
+        self._ddof = ddof
+
+    mean = property(lambda self: self._mean, doc="Mean of the array")
+
+    std = property(lambda self: self._std,
+                   doc="Estimation of the standard deviation of the array")
+
+    var = property(lambda self: self._var,
+                   doc="Estimation of the variance of the array")
+
+    length = property(lambda self: self._length,
+                      doc="Number of elements that where processed")
+
+    ddof = property(lambda self: self._ddof,
+                    doc="Means Delta Degrees of Freedom provided to mean_std")
+
+    def __getitem__(self, key):
+        if key == 0:
+            return self.mean
+        elif key == 1:
+            return self.std
+        else:
+            raise IndexError("Index out of range")
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+@cython.cdivision(True)
+def _mean_std(cython.floating[:] data, unsigned int ddof):
+    """See :func:`mean_std` for documentation."""
+    cdef:
+        unsigned int length, index
+        cython.floating mean, M2, delta
+        cython.floating variance, standard_deviation
+
+    length = len(data)
+
+    if length == 0:
+        raise ValueError('Zero-size array')
+
+    mean = 0
+    M2 = 0
+
+    for index in range(length):
+        value = data[index]
+        delta = value - mean
+        mean = mean + delta / (index + 1)
+        M2 += delta * (value - mean)
+
+    if length <= ddof:
+        variance = float('nan')
+        standard_deviation = float('nan')
+    else:
+        variance = M2 / (length - ddof)
+        standard_deviation = sqrt(variance)
+
+    return _MeanStdResult(mean, standard_deviation, variance, length, ddof)
+
+
+@cython.embedsignature(True)
+def mean_std(data not None, unsigned int ddof=0):
+    """Computes mean and estimation of std and variance in a single pass.
+
+    NaNs are propagated.
+    Behavior with inf values differs from numpy equivalent.
+
+    See: http://www.johndcook.com/blog/standard_deviation/
+    See: https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
+
+    Welford, B. P.
+    Not on a method for calculating corrected sums of squares and products
+    Technometrics, Vol. 4, No. 3 (August 1962), pp. 419-420
+    American Statisical Association and American Society for Quality.
+    DOI: 10.2307/1266577
+
+    :param data: Array-like dataset
+    :param int ddof:
+       Means Delta Degrees of Freedom.
+       The divisor used in calculations is data.size - ddof.
+       Default: 0 (as in numpy.std).
+    :returns: An object with mean, std and var attributes
+    :raises: ValueError if data is empty
+    """
+    return _mean_std(numpy.asanyarray(data).ravel(), ddof)
+    # TODO support int, dtype argument default float64 for int, else dtype
