@@ -80,6 +80,10 @@ def configuration(parent_package='', top_path=None):
                          include_dirs=[mc_dir, numpy.get_include()],
                          language='c++')
 
+    config.add_extension('combo',
+                         sources=["combo.pyx"],
+                         language='c')
+
     return config
 
 
