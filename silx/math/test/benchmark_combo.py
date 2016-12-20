@@ -47,12 +47,39 @@ _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
 
+DTYPES = ('float32', 'float64',
+          'int8', 'int16', 'int32', 'int64',
+          'uint8', 'uint16', 'uint32', 'uint64')
+
+
+def show_results(title, durations, ref_key):
+    try:
+        from matplotlib import pyplot
+    except ImportError:
+        _logger.warning('matplotlib not available')
+        return
+
+    pyplot.title(title)
+    pyplot.xlabel('-'.join(DTYPES))
+    pyplot.ylabel('duration (sec)')
+    for label, values in durations.items():
+        pyplot.semilogy(values, label=label)
+    pyplot.legend()
+    pyplot.show()
+
+    pyplot.title(title)
+    pyplot.xlabel('-'.join(DTYPES))
+    pyplot.ylabel('Duration ratio')
+    ref = numpy.array(durations[ref_key])
+    for label, values in durations.items():
+        values = numpy.array(values)
+        pyplot.plot(values/ref, label=label + ' / ' + ref_key)
+    pyplot.legend()
+    pyplot.show()
+
+
 class BenchmarkMinMax(ParametricTestCase):
     """Benchmark of min max combo"""
-
-    DTYPES = ('float32', 'float64',
-              'int8', 'int16', 'int32', 'int64',
-              'uint8', 'uint16', 'uint32', 'uint64')
 
     ARANGE = 'ascent', 'descent', 'random'
 
@@ -71,7 +98,7 @@ class BenchmarkMinMax(ParametricTestCase):
         """
         durations = {'min/max': [], 'argmin/max': [], 'combo': []}
 
-        for dtype in self.DTYPES:
+        for dtype in DTYPES:
             for arange in self.ARANGE:
                 for exponent in self.EXPONENT:
                     size = 10**exponent
@@ -112,7 +139,7 @@ class BenchmarkMinMax(ParametricTestCase):
                         self.assertEqual(result.argmin, ref_argmin)
                         self.assertEqual(result.argmax, ref_argmax)
 
-        self.show_results('min/max', durations, 'combo')
+        show_results('min/max', durations, 'combo')
 
     def test_benchmark_min_pos(self):
         """Benchmark min_max wit min positive.
@@ -126,7 +153,7 @@ class BenchmarkMinMax(ParametricTestCase):
         """
         durations = {'min/max': [], 'combo': []}
 
-        for dtype in self.DTYPES:
+        for dtype in DTYPES:
             for arange in self.ARANGE:
                 for exponent in self.EXPONENT:
                     size = 10**exponent
@@ -161,38 +188,56 @@ class BenchmarkMinMax(ParametricTestCase):
                         self.assertEqual(result.minimum, ref_min)
                         self.assertEqual(result.maximum, ref_max)
 
-        self.show_results('min/max/min positive', durations, 'combo')
+        show_results('min/max/min positive', durations, 'combo')
 
-    def show_results(self, title, durations, ref_key):
-        try:
-            from matplotlib import pyplot
-        except ImportError:
-            _logger.warning('matplotlib not available')
-            return
 
-        pyplot.title(title)
-        pyplot.xlabel('-'.join(self.DTYPES))
-        pyplot.ylabel('duration (sec)')
-        for label, values in durations.items():
-            pyplot.semilogy(values, label=label)
-        pyplot.legend()
-        pyplot.show()
+class BenchmarkMeanStd(ParametricTestCase):
+    """Benchmark of mean std combo"""
 
-        pyplot.title(title)
-        pyplot.xlabel('-'.join(self.DTYPES))
-        pyplot.ylabel('Duration ratio')
-        ref = numpy.array(durations[ref_key])
-        for label, values in durations.items():
-            values = numpy.array(values)
-            pyplot.plot(values/ref, label=label + ' / ' + ref_key)
-        pyplot.legend()
-        pyplot.show()
+    EXPONENT = 3, 4, 5, 6, 7
+
+    def test_benchmark_mean_std(self):
+        """Benchmark mean_std
+
+        Compares with: numpy.mean, numpy.std
+
+        It runs bench for different types, different data size and 3
+        data sets: increasing , decreasing and random data.
+        """
+        durations = {'mean/std': [], 'combo': []}
+
+        for dtype in DTYPES:
+            for exponent in self.EXPONENT:
+                size = 10**exponent
+                with self.subTest(dtype=dtype, size=size):
+                    data = numpy.arange(0, size, 1, dtype=dtype)
+
+                    start = time.time()
+                    ref_mean = numpy.mean(data)
+                    ref_std = numpy.std(data)
+                    durations['mean/std'].append(time.time() - start)
+
+                    start = time.time()
+                    result = combo.mean_std(data)
+                    durations['combo'].append(time.time() - start)
+
+                    _logger.info(
+                        '%s-10**%d\tx%.2f mean/std',
+                        dtype, exponent,
+                        durations['mean/std'][-1] / durations['combo'][-1])
+
+                    #self.assertTrue(numpy.allclose(result.mean, ref_mean))
+                    #self.assertTrue(numpy.allclose(result.std, ref_std))
+
+        show_results('mean/std', durations, 'combo')
 
 
 def suite():
     test_suite = unittest.TestSuite()
     test_suite.addTests(
         unittest.defaultTestLoader.loadTestsFromTestCase(BenchmarkMinMax))
+    test_suite.addTests(
+        unittest.defaultTestLoader.loadTestsFromTestCase(BenchmarkMeanStd))
     return test_suite
 
 

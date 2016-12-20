@@ -200,6 +200,24 @@ class TestMeanStd(ParametricTestCase):
                         data = numpy.arange(1000., dtype=data_dtype)
                         self._test_mean_std(data, result_dtype, ddof)
 
+    def test_stability(self):
+        """Test mean_std with datasets challenging numerical stability"""
+        for data_dtype in FLOATING_DTYPES:
+            for result_dtype in FLOATING_DTYPES:
+                with self.subTest(data_dtype=data_dtype,
+                                  result_dtype=result_dtype):
+                    small_variation = numpy.linspace(0.1, 0., 1000)
+                    data = numpy.asarray(
+                        10**6 + small_variation,
+                        dtype=data_dtype)
+                    result = mean_std(data, dtype=result_dtype, ddof=0)
+
+                    atol = 10e-2 if data_dtype == 'float32' else 10e-7
+                    self.assertTrue(numpy.allclose(
+                        result.mean - 10**6,
+                        numpy.mean(small_variation),
+                        rtol=0., atol=atol))
+
     def test_no_data(self):
         """Test mean_std without data of with too small data"""
         for dtype in FLOATING_DTYPES:
