@@ -1616,7 +1616,7 @@ static char __pyx_k_Indirect_dimensions_not_supporte[] = "Indirect dimensions no
 static char __pyx_k_Invalid_mode_expected_c_or_fortr[] = "Invalid mode, expected 'c' or 'fortran', got %s";
 static char __pyx_k_Out_of_bounds_on_buffer_access_a[] = "Out of bounds on buffer access (axis %d)";
 static char __pyx_k_Returns_min_max_and_optionally_s[] = "Returns min, max and optionally strictly positive min of data.\n\n    It also computes the indices of first occurence of min/max.\n\n    NaNs are ignored while computing min/max unless all data is NaNs,\n    in which case returned min/max are NaNs.\n\n    Examples:\n\n    >>> import numpy\n    >>> data = numpy.arange(10)\n\n    Usage as a function returning min and max:\n\n    >>> min_, max_ = min_max(data)\n\n    Usage as a function returning a result object to access all information:\n\n    >>> result = min_max(data)  # Do not get positive min\n    >>> result.minimum, result.argmin\n    0, 0\n    >>> result.maximum, result.argmax\n    9, 10\n    >>> result.min_positive, result.argmin_positive  # Not computed\n    None, None\n\n    Getting strictly positive min information:\n\n    >>> result = min_max(data, min_positive=True)\n    >>> result.min_positive, result.argmin_positive  # Computed\n    1, 1\n\n    :param data: Array-like dataset\n    :param bool min_positive: True to compute the positive min and argmin\n                              Default: False.\n    :returns: An object with minimum, maximum and min_positive attributes\n              and the indices of first occurence in the flattened data:\n              argmin, argmax and argmin_positive attributes.\n              If all data is <= 0 or min_positive argument is False, then\n              min_positive and argmin_positive are None.\n    :raises: ValueError if data is empty\n    ";
-static char __pyx_k_This_module_provides_combination[] = "This module provides combination of statistics as single operation.\n\nFor now it provides min/max (and optionally positive min) and indices\nof first occurences in a single pass.\n";
+static char __pyx_k_This_module_provides_combination[] = "This module provides combination of statistics as single operation.\n\nFor now it provides min/max (and optionally positive min) and indices\nof first occurences (i.e., argmin/argmax) in a single pass.\n";
 static char __pyx_k_Unable_to_convert_item_to_object[] = "Unable to convert item to object";
 static char __pyx_k_got_differing_extents_in_dimensi[] = "got differing extents in dimension %d (got %d and %d)";
 static char __pyx_k_unable_to_allocate_shape_and_str[] = "unable to allocate shape and strides.";
@@ -2567,14 +2567,14 @@ static PyObject *__pyx_pf_4silx_4math_5combo__min_max(CYTHON_UNUSED PyObject *__
   Py_ssize_t __pyx_v_itemsize;
   int __pyx_v_dtype_signed;
   char __pyx_v_kind;
-  int __pyx_v_unsigned_int_is_signed;
   int __pyx_v_long_is_signed;
   int __pyx_v_unsigned_long_is_signed;
-  int __pyx_v_short_is_signed;
+  int __pyx_v_unsigned_char_is_signed;
   int __pyx_v_char_is_signed;
   int __pyx_v_int_is_signed;
+  int __pyx_v_short_is_signed;
   int __pyx_v_unsigned_short_is_signed;
-  int __pyx_v_unsigned_char_is_signed;
+  int __pyx_v_unsigned_int_is_signed;
   PyObject *__pyx_v_arg = NULL;
   PyObject *__pyx_v_dtype = NULL;
   PyObject *__pyx_v_arg_base = NULL;
@@ -2678,14 +2678,14 @@ static PyObject *__pyx_pf_4silx_4math_5combo__min_max(CYTHON_UNUSED PyObject *__
     __pyx_L11_try_end:;
   }
   __pyx_v_itemsize = -1;
-  __pyx_v_unsigned_int_is_signed = (((unsigned int)-1) < 0);
   __pyx_v_long_is_signed = (((long)-1) < 0);
   __pyx_v_unsigned_long_is_signed = (((unsigned long)-1) < 0);
-  __pyx_v_short_is_signed = (((short)-1) < 0);
+  __pyx_v_unsigned_char_is_signed = (((unsigned char)-1) < 0);
   __pyx_v_char_is_signed = (((char)-1) < 0);
   __pyx_v_int_is_signed = (((int)-1) < 0);
+  __pyx_v_short_is_signed = (((short)-1) < 0);
   __pyx_v_unsigned_short_is_signed = (((unsigned short)-1) < 0);
-  __pyx_v_unsigned_char_is_signed = (((unsigned char)-1) < 0);
+  __pyx_v_unsigned_int_is_signed = (((unsigned int)-1) < 0);
   if (unlikely(__pyx_v_args == Py_None)) {
     PyErr_SetString(PyExc_TypeError, "object of type 'NoneType' has no len()");
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 105; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
