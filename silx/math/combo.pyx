@@ -26,7 +26,7 @@
 
 It contains:
 
-- :func`min_max` that computes min/max (and optionally positive min)
+- :func:`min_max` that computes min/max (and optionally positive min)
   and indices of first occurences (i.e., argmin/argmax) in a single pass.
 - :func:`mean_std` that computes mean and std in a single pass.
 """
@@ -214,17 +214,17 @@ def min_max(data not None, bint min_positive=False):
 
     >>> result = min_max(data)  # Do not get positive min
     >>> result.minimum, result.argmin
-    0, 0
+    (0, 0)
     >>> result.maximum, result.argmax
-    9, 10
+    (9, 10)
     >>> result.min_positive, result.argmin_positive  # Not computed
-    None, None
+    (None, None)
 
     Getting strictly positive min information:
 
     >>> result = min_max(data, min_positive=True)
     >>> result.min_positive, result.argmin_positive  # Computed
-    1, 1
+    (1, 1)
 
     :param data: Array-like dataset
     :param bool min_positive: True to compute the positive min and argmin
@@ -320,8 +320,27 @@ def mean_std(data not None, dtype=None, unsigned int ddof=0):
     NaNs are propagated.
     Behavior with inf values differs from numpy equivalent functions.
 
-    See: http://www.johndcook.com/blog/standard_deviation/
-    See: https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
+    Examples:
+
+    >>> import numpy
+    >>> data = numpy.arange(100.)
+
+    Usage as a function returning mean and std:
+
+    >>> mean, std = mean_std(data)
+
+    Usage as a function returning a result object to access all information:
+
+    >>> result = mean_std(data)
+    >>> result.mean, result.var
+    (49.5, 833.25)
+    >>> result.length, result.ddof
+    (100, 0)
+
+    See:
+
+    - http://www.johndcook.com/blog/standard_deviation/
+    - https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
 
     Welford, B. P.
     Not on a method for calculating corrected sums of squares and products
@@ -332,12 +351,12 @@ def mean_std(data not None, dtype=None, unsigned int ddof=0):
     :param data: Array-like dataset
     :param dtype:
         Type to use in computing mean, std and variance.
-        Default: float64 for integers, data type for floating data.
-        Only 'float32' and 'float64' types are valid.
+        Default: ``'float64'`` for integers, data type for floating data.
+        Only ``'float32'`` and ``'float64'`` types are valid.
     :param int ddof:
         Means Delta Degrees of Freedom.
-        The divisor used in calculations is data.size - ddof.
-        Default: 0 (as in numpy.std).
+        The divisor used in calculations is ``(data.size - ddof)``.
+        Default: 0 (as in ``numpy.std``).
     :returns: An object with mean, std and var attributes
     :raises: ValueError if data is empty
     """

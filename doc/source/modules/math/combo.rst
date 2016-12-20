@@ -6,3 +6,5 @@
 .. automodule:: silx.math.combo
 
 .. autofunction:: min_max
+
+.. autofunction:: mean_std
