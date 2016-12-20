@@ -2755,14 +2755,14 @@ static PyObject *__pyx_pf_4silx_4math_5combo__min_max(CYTHON_UNUSED PyObject *__
   Py_ssize_t __pyx_v_itemsize;
   int __pyx_v_dtype_signed;
   char __pyx_v_kind;
-  int __pyx_v_unsigned_int_is_signed;
-  int __pyx_v_signed_long_is_signed;
   int __pyx_v_signed_short_is_signed;
   int __pyx_v_signed_char_is_signed;
   int __pyx_v_signed_int_is_signed;
+  int __pyx_v_unsigned_short_is_signed;
+  int __pyx_v_unsigned_int_is_signed;
+  int __pyx_v_signed_long_is_signed;
   int __pyx_v_unsigned_char_is_signed;
   int __pyx_v_unsigned_long_long_is_signed;
-  int __pyx_v_unsigned_short_is_signed;
   PyObject *__pyx_v_arg = NULL;
   PyObject *__pyx_v_dtype = NULL;
   PyObject *__pyx_v_arg_base = NULL;
@@ -2866,14 +2866,14 @@ static PyObject *__pyx_pf_4silx_4math_5combo__min_max(CYTHON_UNUSED PyObject *__
     __pyx_L11_try_end:;
   }
   __pyx_v_itemsize = -1;
-  __pyx_v_unsigned_int_is_signed = (((unsigned int)-1) < 0);
-  __pyx_v_signed_long_is_signed = (((signed long)-1) < 0);
   __pyx_v_signed_short_is_signed = (((signed short)-1) < 0);
   __pyx_v_signed_char_is_signed = (((signed char)-1) < 0);
   __pyx_v_signed_int_is_signed = (((signed int)-1) < 0);
+  __pyx_v_unsigned_short_is_signed = (((unsigned short)-1) < 0);
+  __pyx_v_unsigned_int_is_signed = (((unsigned int)-1) < 0);
+  __pyx_v_signed_long_is_signed = (((signed long)-1) < 0);
   __pyx_v_unsigned_char_is_signed = (((unsigned char)-1) < 0);
   __pyx_v_unsigned_long_long_is_signed = (((unsigned PY_LONG_LONG)-1) < 0);
-  __pyx_v_unsigned_short_is_signed = (((unsigned short)-1) < 0);
   if (unlikely(__pyx_v_args == Py_None)) {
     PyErr_SetString(PyExc_TypeError, "object of type 'NoneType' has no len()");
     {__pyx_filename = __pyx_f[0]; __pyx_lineno = 110; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -12898,13 +12898,13 @@ static PyObject *__pyx_pf_4silx_4math_5combo_4_mean_std(CYTHON_UNUSED PyObject *
   Py_ssize_t __pyx_v_itemsize;
   int __pyx_v_dtype_signed;
   char __pyx_v_kind;
+  int __pyx_v_signed_long_is_signed;
+  int __pyx_v_unsigned_char_is_signed;
+  int __pyx_v_signed_short_is_signed;
   int __pyx_v_unsigned_short_is_signed;
   int __pyx_v_unsigned_int_is_signed;
   int __pyx_v_unsigned_long_long_is_signed;
   int __pyx_v_signed_char_is_signed;
-  int __pyx_v_signed_short_is_signed;
-  int __pyx_v_signed_long_is_signed;
-  int __pyx_v_unsigned_char_is_signed;
   int __pyx_v_signed_int_is_signed;
   PyObject *__pyx_v_arg = NULL;
   PyObject *__pyx_v_dtype = NULL;
@@ -13012,13 +13012,13 @@ static PyObject *__pyx_pf_4silx_4math_5combo_4_mean_std(CYTHON_UNUSED PyObject *
     __pyx_L11_try_end:;
   }
   __pyx_v_itemsize = -1;
+  __pyx_v_signed_long_is_signed = (((signed long)-1) < 0);
+  __pyx_v_unsigned_char_is_signed = (((unsigned char)-1) < 0);
+  __pyx_v_signed_short_is_signed = (((signed short)-1) < 0);
   __pyx_v_unsigned_short_is_signed = (((unsigned short)-1) < 0);
   __pyx_v_unsigned_int_is_signed = (((unsigned int)-1) < 0);
   __pyx_v_unsigned_long_long_is_signed = (((unsigned PY_LONG_LONG)-1) < 0);
   __pyx_v_signed_char_is_signed = (((signed char)-1) < 0);
-  __pyx_v_signed_short_is_signed = (((signed short)-1) < 0);
-  __pyx_v_signed_long_is_signed = (((signed long)-1) < 0);
-  __pyx_v_unsigned_char_is_signed = (((unsigned char)-1) < 0);
   __pyx_v_signed_int_is_signed = (((signed int)-1) < 0);
   if (unlikely(__pyx_v_args == Py_None)) {
     PyErr_SetString(PyExc_TypeError, "object of type 'NoneType' has no len()");
@@ -14083,7 +14083,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_30_mean_std(CYTHON_UNUSED PyObject 
  *     for index in range(length):
  *         value = data[index]             # <<<<<<<<<<<<<<
  *         delta = value - mean
- *         mean = mean + delta / (index + 1)
+ *         mean += delta / (index + 1)
  */
     __pyx_t_6 = __pyx_v_index;
     __pyx_t_1 = PyFloat_FromDouble((*((float *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_6 * __pyx_v_data.strides[0]) )))); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 301; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -14095,7 +14095,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_30_mean_std(CYTHON_UNUSED PyObject 
  *     for index in range(length):
  *         value = data[index]
  *         delta = value - mean             # <<<<<<<<<<<<<<
- *         mean = mean + delta / (index + 1)
+ *         mean += delta / (index + 1)
  *         M2 += delta * (value - mean)
  */
     __pyx_t_1 = PyFloat_FromDouble(__pyx_v_mean); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 302; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -14110,7 +14110,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_30_mean_std(CYTHON_UNUSED PyObject 
     /* "silx/math/combo.pyx":303
  *         value = data[index]
  *         delta = value - mean
- *         mean = mean + delta / (index + 1)             # <<<<<<<<<<<<<<
+ *         mean += delta / (index + 1)             # <<<<<<<<<<<<<<
  *         M2 += delta * (value - mean)
  * 
  */
@@ -14118,7 +14118,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_30_mean_std(CYTHON_UNUSED PyObject 
 
     /* "silx/math/combo.pyx":304
  *         delta = value - mean
- *         mean = mean + delta / (index + 1)
+ *         mean += delta / (index + 1)
  *         M2 += delta * (value - mean)             # <<<<<<<<<<<<<<
  * 
  *     if length <= ddof:
@@ -14460,7 +14460,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_32_mean_std(CYTHON_UNUSED PyObject 
  *     for index in range(length):
  *         value = data[index]             # <<<<<<<<<<<<<<
  *         delta = value - mean
- *         mean = mean + delta / (index + 1)
+ *         mean += delta / (index + 1)
  */
     __pyx_t_6 = __pyx_v_index;
     __pyx_t_1 = PyFloat_FromDouble((*((float *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_6 * __pyx_v_data.strides[0]) )))); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 301; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -14472,7 +14472,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_32_mean_std(CYTHON_UNUSED PyObject 
  *     for index in range(length):
  *         value = data[index]
  *         delta = value - mean             # <<<<<<<<<<<<<<
- *         mean = mean + delta / (index + 1)
+ *         mean += delta / (index + 1)
  *         M2 += delta * (value - mean)
  */
     __pyx_t_1 = PyFloat_FromDouble(__pyx_v_mean); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 302; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -14487,7 +14487,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_32_mean_std(CYTHON_UNUSED PyObject 
     /* "silx/math/combo.pyx":303
  *         value = data[index]
  *         delta = value - mean
- *         mean = mean + delta / (index + 1)             # <<<<<<<<<<<<<<
+ *         mean += delta / (index + 1)             # <<<<<<<<<<<<<<
  *         M2 += delta * (value - mean)
  * 
  */
@@ -14495,7 +14495,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_32_mean_std(CYTHON_UNUSED PyObject 
 
     /* "silx/math/combo.pyx":304
  *         delta = value - mean
- *         mean = mean + delta / (index + 1)
+ *         mean += delta / (index + 1)
  *         M2 += delta * (value - mean)             # <<<<<<<<<<<<<<
  * 
  *     if length <= ddof:
@@ -14838,7 +14838,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_34_mean_std(CYTHON_UNUSED PyObject 
  *     for index in range(length):
  *         value = data[index]             # <<<<<<<<<<<<<<
  *         delta = value - mean
- *         mean = mean + delta / (index + 1)
+ *         mean += delta / (index + 1)
  */
     __pyx_t_6 = __pyx_v_index;
     __pyx_t_1 = PyFloat_FromDouble((*((double *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_6 * __pyx_v_data.strides[0]) )))); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 301; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -14850,7 +14850,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_34_mean_std(CYTHON_UNUSED PyObject 
  *     for index in range(length):
  *         value = data[index]
  *         delta = value - mean             # <<<<<<<<<<<<<<
- *         mean = mean + delta / (index + 1)
+ *         mean += delta / (index + 1)
  *         M2 += delta * (value - mean)
  */
     __pyx_t_1 = PyFloat_FromDouble(__pyx_v_mean); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 302; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -14865,7 +14865,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_34_mean_std(CYTHON_UNUSED PyObject 
     /* "silx/math/combo.pyx":303
  *         value = data[index]
  *         delta = value - mean
- *         mean = mean + delta / (index + 1)             # <<<<<<<<<<<<<<
+ *         mean += delta / (index + 1)             # <<<<<<<<<<<<<<
  *         M2 += delta * (value - mean)
  * 
  */
@@ -14873,7 +14873,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_34_mean_std(CYTHON_UNUSED PyObject 
 
     /* "silx/math/combo.pyx":304
  *         delta = value - mean
- *         mean = mean + delta / (index + 1)
+ *         mean += delta / (index + 1)
  *         M2 += delta * (value - mean)             # <<<<<<<<<<<<<<
  * 
  *     if length <= ddof:
@@ -15215,7 +15215,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_36_mean_std(CYTHON_UNUSED PyObject 
  *     for index in range(length):
  *         value = data[index]             # <<<<<<<<<<<<<<
  *         delta = value - mean
- *         mean = mean + delta / (index + 1)
+ *         mean += delta / (index + 1)
  */
     __pyx_t_6 = __pyx_v_index;
     __pyx_t_1 = PyFloat_FromDouble((*((double *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_6 * __pyx_v_data.strides[0]) )))); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 301; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -15227,7 +15227,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_36_mean_std(CYTHON_UNUSED PyObject 
  *     for index in range(length):
  *         value = data[index]
  *         delta = value - mean             # <<<<<<<<<<<<<<
- *         mean = mean + delta / (index + 1)
+ *         mean += delta / (index + 1)
  *         M2 += delta * (value - mean)
  */
     __pyx_t_1 = PyFloat_FromDouble(__pyx_v_mean); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 302; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -15242,7 +15242,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_36_mean_std(CYTHON_UNUSED PyObject 
     /* "silx/math/combo.pyx":303
  *         value = data[index]
  *         delta = value - mean
- *         mean = mean + delta / (index + 1)             # <<<<<<<<<<<<<<
+ *         mean += delta / (index + 1)             # <<<<<<<<<<<<<<
  *         M2 += delta * (value - mean)
  * 
  */
@@ -15250,7 +15250,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_36_mean_std(CYTHON_UNUSED PyObject 
 
     /* "silx/math/combo.pyx":304
  *         delta = value - mean
- *         mean = mean + delta / (index + 1)
+ *         mean += delta / (index + 1)
  *         M2 += delta * (value - mean)             # <<<<<<<<<<<<<<
  * 
  *     if length <= ddof:
@@ -15593,7 +15593,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_38_mean_std(CYTHON_UNUSED PyObject 
  *     for index in range(length):
  *         value = data[index]             # <<<<<<<<<<<<<<
  *         delta = value - mean
- *         mean = mean + delta / (index + 1)
+ *         mean += delta / (index + 1)
  */
     __pyx_t_6 = __pyx_v_index;
     __pyx_t_1 = __Pyx_PyInt_From_signed__char((*((signed char *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_6 * __pyx_v_data.strides[0]) )))); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 301; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -15605,7 +15605,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_38_mean_std(CYTHON_UNUSED PyObject 
  *     for index in range(length):
  *         value = data[index]
  *         delta = value - mean             # <<<<<<<<<<<<<<
- *         mean = mean + delta / (index + 1)
+ *         mean += delta / (index + 1)
  *         M2 += delta * (value - mean)
  */
     __pyx_t_1 = PyFloat_FromDouble(__pyx_v_mean); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 302; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -15620,7 +15620,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_38_mean_std(CYTHON_UNUSED PyObject 
     /* "silx/math/combo.pyx":303
  *         value = data[index]
  *         delta = value - mean
- *         mean = mean + delta / (index + 1)             # <<<<<<<<<<<<<<
+ *         mean += delta / (index + 1)             # <<<<<<<<<<<<<<
  *         M2 += delta * (value - mean)
  * 
  */
@@ -15628,7 +15628,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_38_mean_std(CYTHON_UNUSED PyObject 
 
     /* "silx/math/combo.pyx":304
  *         delta = value - mean
- *         mean = mean + delta / (index + 1)
+ *         mean += delta / (index + 1)
  *         M2 += delta * (value - mean)             # <<<<<<<<<<<<<<
  * 
  *     if length <= ddof:
@@ -15970,7 +15970,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_40_mean_std(CYTHON_UNUSED PyObject 
  *     for index in range(length):
  *         value = data[index]             # <<<<<<<<<<<<<<
  *         delta = value - mean
- *         mean = mean + delta / (index + 1)
+ *         mean += delta / (index + 1)
  */
     __pyx_t_6 = __pyx_v_index;
     __pyx_t_1 = __Pyx_PyInt_From_signed__char((*((signed char *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_6 * __pyx_v_data.strides[0]) )))); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 301; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -15982,7 +15982,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_40_mean_std(CYTHON_UNUSED PyObject 
  *     for index in range(length):
  *         value = data[index]
  *         delta = value - mean             # <<<<<<<<<<<<<<
- *         mean = mean + delta / (index + 1)
+ *         mean += delta / (index + 1)
  *         M2 += delta * (value - mean)
  */
     __pyx_t_1 = PyFloat_FromDouble(__pyx_v_mean); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 302; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -15997,7 +15997,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_40_mean_std(CYTHON_UNUSED PyObject 
     /* "silx/math/combo.pyx":303
  *         value = data[index]
  *         delta = value - mean
- *         mean = mean + delta / (index + 1)             # <<<<<<<<<<<<<<
+ *         mean += delta / (index + 1)             # <<<<<<<<<<<<<<
  *         M2 += delta * (value - mean)
  * 
  */
@@ -16005,7 +16005,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_40_mean_std(CYTHON_UNUSED PyObject 
 
     /* "silx/math/combo.pyx":304
  *         delta = value - mean
- *         mean = mean + delta / (index + 1)
+ *         mean += delta / (index + 1)
  *         M2 += delta * (value - mean)             # <<<<<<<<<<<<<<
  * 
  *     if length <= ddof:
@@ -16348,7 +16348,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_42_mean_std(CYTHON_UNUSED PyObject 
  *     for index in range(length):
  *         value = data[index]             # <<<<<<<<<<<<<<
  *         delta = value - mean
- *         mean = mean + delta / (index + 1)
+ *         mean += delta / (index + 1)
  */
     __pyx_t_6 = __pyx_v_index;
     __pyx_t_1 = __Pyx_PyInt_From_signed__short((*((signed short *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_6 * __pyx_v_data.strides[0]) )))); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 301; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -16360,7 +16360,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_42_mean_std(CYTHON_UNUSED PyObject 
  *     for index in range(length):
  *         value = data[index]
  *         delta = value - mean             # <<<<<<<<<<<<<<
- *         mean = mean + delta / (index + 1)
+ *         mean += delta / (index + 1)
  *         M2 += delta * (value - mean)
  */
     __pyx_t_1 = PyFloat_FromDouble(__pyx_v_mean); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 302; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -16375,7 +16375,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_42_mean_std(CYTHON_UNUSED PyObject 
     /* "silx/math/combo.pyx":303
  *         value = data[index]
  *         delta = value - mean
- *         mean = mean + delta / (index + 1)             # <<<<<<<<<<<<<<
+ *         mean += delta / (index + 1)             # <<<<<<<<<<<<<<
  *         M2 += delta * (value - mean)
  * 
  */
@@ -16383,7 +16383,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_42_mean_std(CYTHON_UNUSED PyObject 
 
     /* "silx/math/combo.pyx":304
  *         delta = value - mean
- *         mean = mean + delta / (index + 1)
+ *         mean += delta / (index + 1)
  *         M2 += delta * (value - mean)             # <<<<<<<<<<<<<<
  * 
  *     if length <= ddof:
@@ -16725,7 +16725,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_44_mean_std(CYTHON_UNUSED PyObject 
  *     for index in range(length):
  *         value = data[index]             # <<<<<<<<<<<<<<
  *         delta = value - mean
- *         mean = mean + delta / (index + 1)
+ *         mean += delta / (index + 1)
  */
     __pyx_t_6 = __pyx_v_index;
     __pyx_t_1 = __Pyx_PyInt_From_signed__short((*((signed short *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_6 * __pyx_v_data.strides[0]) )))); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 301; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -16737,7 +16737,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_44_mean_std(CYTHON_UNUSED PyObject 
  *     for index in range(length):
  *         value = data[index]
  *         delta = value - mean             # <<<<<<<<<<<<<<
- *         mean = mean + delta / (index + 1)
+ *         mean += delta / (index + 1)
  *         M2 += delta * (value - mean)
  */
     __pyx_t_1 = PyFloat_FromDouble(__pyx_v_mean); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 302; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -16752,7 +16752,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_44_mean_std(CYTHON_UNUSED PyObject 
     /* "silx/math/combo.pyx":303
  *         value = data[index]
  *         delta = value - mean
- *         mean = mean + delta / (index + 1)             # <<<<<<<<<<<<<<
+ *         mean += delta / (index + 1)             # <<<<<<<<<<<<<<
  *         M2 += delta * (value - mean)
  * 
  */
@@ -16760,7 +16760,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_44_mean_std(CYTHON_UNUSED PyObject 
 
     /* "silx/math/combo.pyx":304
  *         delta = value - mean
- *         mean = mean + delta / (index + 1)
+ *         mean += delta / (index + 1)
  *         M2 += delta * (value - mean)             # <<<<<<<<<<<<<<
  * 
  *     if length <= ddof:
@@ -17103,7 +17103,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_46_mean_std(CYTHON_UNUSED PyObject 
  *     for index in range(length):
  *         value = data[index]             # <<<<<<<<<<<<<<
  *         delta = value - mean
- *         mean = mean + delta / (index + 1)
+ *         mean += delta / (index + 1)
  */
     __pyx_t_6 = __pyx_v_index;
     __pyx_t_1 = __Pyx_PyInt_From_signed__int((*((signed int *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_6 * __pyx_v_data.strides[0]) )))); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 301; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -17115,7 +17115,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_46_mean_std(CYTHON_UNUSED PyObject 
  *     for index in range(length):
  *         value = data[index]
  *         delta = value - mean             # <<<<<<<<<<<<<<
- *         mean = mean + delta / (index + 1)
+ *         mean += delta / (index + 1)
  *         M2 += delta * (value - mean)
  */
     __pyx_t_1 = PyFloat_FromDouble(__pyx_v_mean); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 302; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -17130,7 +17130,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_46_mean_std(CYTHON_UNUSED PyObject 
     /* "silx/math/combo.pyx":303
  *         value = data[index]
  *         delta = value - mean
- *         mean = mean + delta / (index + 1)             # <<<<<<<<<<<<<<
+ *         mean += delta / (index + 1)             # <<<<<<<<<<<<<<
  *         M2 += delta * (value - mean)
  * 
  */
@@ -17138,7 +17138,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_46_mean_std(CYTHON_UNUSED PyObject 
 
     /* "silx/math/combo.pyx":304
  *         delta = value - mean
- *         mean = mean + delta / (index + 1)
+ *         mean += delta / (index + 1)
  *         M2 += delta * (value - mean)             # <<<<<<<<<<<<<<
  * 
  *     if length <= ddof:
@@ -17480,7 +17480,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_48_mean_std(CYTHON_UNUSED PyObject 
  *     for index in range(length):
  *         value = data[index]             # <<<<<<<<<<<<<<
  *         delta = value - mean
- *         mean = mean + delta / (index + 1)
+ *         mean += delta / (index + 1)
  */
     __pyx_t_6 = __pyx_v_index;
     __pyx_t_1 = __Pyx_PyInt_From_signed__int((*((signed int *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_6 * __pyx_v_data.strides[0]) )))); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 301; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -17492,7 +17492,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_48_mean_std(CYTHON_UNUSED PyObject 
  *     for index in range(length):
  *         value = data[index]
  *         delta = value - mean             # <<<<<<<<<<<<<<
- *         mean = mean + delta / (index + 1)
+ *         mean += delta / (index + 1)
  *         M2 += delta * (value - mean)
  */
     __pyx_t_1 = PyFloat_FromDouble(__pyx_v_mean); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 302; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -17507,7 +17507,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_48_mean_std(CYTHON_UNUSED PyObject 
     /* "silx/math/combo.pyx":303
  *         value = data[index]
  *         delta = value - mean
- *         mean = mean + delta / (index + 1)             # <<<<<<<<<<<<<<
+ *         mean += delta / (index + 1)             # <<<<<<<<<<<<<<
  *         M2 += delta * (value - mean)
  * 
  */
@@ -17515,7 +17515,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_48_mean_std(CYTHON_UNUSED PyObject 
 
     /* "silx/math/combo.pyx":304
  *         delta = value - mean
- *         mean = mean + delta / (index + 1)
+ *         mean += delta / (index + 1)
  *         M2 += delta * (value - mean)             # <<<<<<<<<<<<<<
  * 
  *     if length <= ddof:
@@ -17858,7 +17858,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_50_mean_std(CYTHON_UNUSED PyObject 
  *     for index in range(length):
  *         value = data[index]             # <<<<<<<<<<<<<<
  *         delta = value - mean
- *         mean = mean + delta / (index + 1)
+ *         mean += delta / (index + 1)
  */
     __pyx_t_6 = __pyx_v_index;
     __pyx_t_1 = __Pyx_PyInt_From_signed__long((*((signed long *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_6 * __pyx_v_data.strides[0]) )))); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 301; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -17870,7 +17870,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_50_mean_std(CYTHON_UNUSED PyObject 
  *     for index in range(length):
  *         value = data[index]
  *         delta = value - mean             # <<<<<<<<<<<<<<
- *         mean = mean + delta / (index + 1)
+ *         mean += delta / (index + 1)
  *         M2 += delta * (value - mean)
  */
     __pyx_t_1 = PyFloat_FromDouble(__pyx_v_mean); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 302; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -17885,7 +17885,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_50_mean_std(CYTHON_UNUSED PyObject 
     /* "silx/math/combo.pyx":303
  *         value = data[index]
  *         delta = value - mean
- *         mean = mean + delta / (index + 1)             # <<<<<<<<<<<<<<
+ *         mean += delta / (index + 1)             # <<<<<<<<<<<<<<
  *         M2 += delta * (value - mean)
  * 
  */
@@ -17893,7 +17893,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_50_mean_std(CYTHON_UNUSED PyObject 
 
     /* "silx/math/combo.pyx":304
  *         delta = value - mean
- *         mean = mean + delta / (index + 1)
+ *         mean += delta / (index + 1)
  *         M2 += delta * (value - mean)             # <<<<<<<<<<<<<<
  * 
  *     if length <= ddof:
@@ -18235,7 +18235,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_52_mean_std(CYTHON_UNUSED PyObject 
  *     for index in range(length):
  *         value = data[index]             # <<<<<<<<<<<<<<
  *         delta = value - mean
- *         mean = mean + delta / (index + 1)
+ *         mean += delta / (index + 1)
  */
     __pyx_t_6 = __pyx_v_index;
     __pyx_t_1 = __Pyx_PyInt_From_signed__long((*((signed long *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_6 * __pyx_v_data.strides[0]) )))); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 301; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -18247,7 +18247,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_52_mean_std(CYTHON_UNUSED PyObject 
  *     for index in range(length):
  *         value = data[index]
  *         delta = value - mean             # <<<<<<<<<<<<<<
- *         mean = mean + delta / (index + 1)
+ *         mean += delta / (index + 1)
  *         M2 += delta * (value - mean)
  */
     __pyx_t_1 = PyFloat_FromDouble(__pyx_v_mean); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 302; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -18262,7 +18262,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_52_mean_std(CYTHON_UNUSED PyObject 
     /* "silx/math/combo.pyx":303
  *         value = data[index]
  *         delta = value - mean
- *         mean = mean + delta / (index + 1)             # <<<<<<<<<<<<<<
+ *         mean += delta / (index + 1)             # <<<<<<<<<<<<<<
  *         M2 += delta * (value - mean)
  * 
  */
@@ -18270,7 +18270,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_52_mean_std(CYTHON_UNUSED PyObject 
 
     /* "silx/math/combo.pyx":304
  *         delta = value - mean
- *         mean = mean + delta / (index + 1)
+ *         mean += delta / (index + 1)
  *         M2 += delta * (value - mean)             # <<<<<<<<<<<<<<
  * 
  *     if length <= ddof:
@@ -18613,7 +18613,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_54_mean_std(CYTHON_UNUSED PyObject 
  *     for index in range(length):
  *         value = data[index]             # <<<<<<<<<<<<<<
  *         delta = value - mean
- *         mean = mean + delta / (index + 1)
+ *         mean += delta / (index + 1)
  */
     __pyx_t_6 = __pyx_v_index;
     __pyx_t_1 = __Pyx_PyInt_From_unsigned_char((*((unsigned char *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_6 * __pyx_v_data.strides[0]) )))); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 301; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -18625,7 +18625,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_54_mean_std(CYTHON_UNUSED PyObject 
  *     for index in range(length):
  *         value = data[index]
  *         delta = value - mean             # <<<<<<<<<<<<<<
- *         mean = mean + delta / (index + 1)
+ *         mean += delta / (index + 1)
  *         M2 += delta * (value - mean)
  */
     __pyx_t_1 = PyFloat_FromDouble(__pyx_v_mean); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 302; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -18640,7 +18640,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_54_mean_std(CYTHON_UNUSED PyObject 
     /* "silx/math/combo.pyx":303
  *         value = data[index]
  *         delta = value - mean
- *         mean = mean + delta / (index + 1)             # <<<<<<<<<<<<<<
+ *         mean += delta / (index + 1)             # <<<<<<<<<<<<<<
  *         M2 += delta * (value - mean)
  * 
  */
@@ -18648,7 +18648,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_54_mean_std(CYTHON_UNUSED PyObject 
 
     /* "silx/math/combo.pyx":304
  *         delta = value - mean
- *         mean = mean + delta / (index + 1)
+ *         mean += delta / (index + 1)
  *         M2 += delta * (value - mean)             # <<<<<<<<<<<<<<
  * 
  *     if length <= ddof:
@@ -18990,7 +18990,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_56_mean_std(CYTHON_UNUSED PyObject 
  *     for index in range(length):
  *         value = data[index]             # <<<<<<<<<<<<<<
  *         delta = value - mean
- *         mean = mean + delta / (index + 1)
+ *         mean += delta / (index + 1)
  */
     __pyx_t_6 = __pyx_v_index;
     __pyx_t_1 = __Pyx_PyInt_From_unsigned_char((*((unsigned char *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_6 * __pyx_v_data.strides[0]) )))); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 301; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -19002,7 +19002,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_56_mean_std(CYTHON_UNUSED PyObject 
  *     for index in range(length):
  *         value = data[index]
  *         delta = value - mean             # <<<<<<<<<<<<<<
- *         mean = mean + delta / (index + 1)
+ *         mean += delta / (index + 1)
  *         M2 += delta * (value - mean)
  */
     __pyx_t_1 = PyFloat_FromDouble(__pyx_v_mean); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 302; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -19017,7 +19017,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_56_mean_std(CYTHON_UNUSED PyObject 
     /* "silx/math/combo.pyx":303
  *         value = data[index]
  *         delta = value - mean
- *         mean = mean + delta / (index + 1)             # <<<<<<<<<<<<<<
+ *         mean += delta / (index + 1)             # <<<<<<<<<<<<<<
  *         M2 += delta * (value - mean)
  * 
  */
@@ -19025,7 +19025,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_56_mean_std(CYTHON_UNUSED PyObject 
 
     /* "silx/math/combo.pyx":304
  *         delta = value - mean
- *         mean = mean + delta / (index + 1)
+ *         mean += delta / (index + 1)
  *         M2 += delta * (value - mean)             # <<<<<<<<<<<<<<
  * 
  *     if length <= ddof:
@@ -19368,7 +19368,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_58_mean_std(CYTHON_UNUSED PyObject 
  *     for index in range(length):
  *         value = data[index]             # <<<<<<<<<<<<<<
  *         delta = value - mean
- *         mean = mean + delta / (index + 1)
+ *         mean += delta / (index + 1)
  */
     __pyx_t_6 = __pyx_v_index;
     __pyx_t_1 = __Pyx_PyInt_From_unsigned_short((*((unsigned short *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_6 * __pyx_v_data.strides[0]) )))); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 301; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -19380,7 +19380,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_58_mean_std(CYTHON_UNUSED PyObject 
  *     for index in range(length):
  *         value = data[index]
  *         delta = value - mean             # <<<<<<<<<<<<<<
- *         mean = mean + delta / (index + 1)
+ *         mean += delta / (index + 1)
  *         M2 += delta * (value - mean)
  */
     __pyx_t_1 = PyFloat_FromDouble(__pyx_v_mean); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 302; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -19395,7 +19395,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_58_mean_std(CYTHON_UNUSED PyObject 
     /* "silx/math/combo.pyx":303
  *         value = data[index]
  *         delta = value - mean
- *         mean = mean + delta / (index + 1)             # <<<<<<<<<<<<<<
+ *         mean += delta / (index + 1)             # <<<<<<<<<<<<<<
  *         M2 += delta * (value - mean)
  * 
  */
@@ -19403,7 +19403,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_58_mean_std(CYTHON_UNUSED PyObject 
 
     /* "silx/math/combo.pyx":304
  *         delta = value - mean
- *         mean = mean + delta / (index + 1)
+ *         mean += delta / (index + 1)
  *         M2 += delta * (value - mean)             # <<<<<<<<<<<<<<
  * 
  *     if length <= ddof:
@@ -19745,7 +19745,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_60_mean_std(CYTHON_UNUSED PyObject 
  *     for index in range(length):
  *         value = data[index]             # <<<<<<<<<<<<<<
  *         delta = value - mean
- *         mean = mean + delta / (index + 1)
+ *         mean += delta / (index + 1)
  */
     __pyx_t_6 = __pyx_v_index;
     __pyx_t_1 = __Pyx_PyInt_From_unsigned_short((*((unsigned short *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_6 * __pyx_v_data.strides[0]) )))); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 301; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -19757,7 +19757,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_60_mean_std(CYTHON_UNUSED PyObject 
  *     for index in range(length):
  *         value = data[index]
  *         delta = value - mean             # <<<<<<<<<<<<<<
- *         mean = mean + delta / (index + 1)
+ *         mean += delta / (index + 1)
  *         M2 += delta * (value - mean)
  */
     __pyx_t_1 = PyFloat_FromDouble(__pyx_v_mean); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 302; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -19772,7 +19772,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_60_mean_std(CYTHON_UNUSED PyObject 
     /* "silx/math/combo.pyx":303
  *         value = data[index]
  *         delta = value - mean
- *         mean = mean + delta / (index + 1)             # <<<<<<<<<<<<<<
+ *         mean += delta / (index + 1)             # <<<<<<<<<<<<<<
  *         M2 += delta * (value - mean)
  * 
  */
@@ -19780,7 +19780,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_60_mean_std(CYTHON_UNUSED PyObject 
 
     /* "silx/math/combo.pyx":304
  *         delta = value - mean
- *         mean = mean + delta / (index + 1)
+ *         mean += delta / (index + 1)
  *         M2 += delta * (value - mean)             # <<<<<<<<<<<<<<
  * 
  *     if length <= ddof:
@@ -20123,7 +20123,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_62_mean_std(CYTHON_UNUSED PyObject 
  *     for index in range(length):
  *         value = data[index]             # <<<<<<<<<<<<<<
  *         delta = value - mean
- *         mean = mean + delta / (index + 1)
+ *         mean += delta / (index + 1)
  */
     __pyx_t_6 = __pyx_v_index;
     __pyx_t_1 = __Pyx_PyInt_From_unsigned_int((*((unsigned int *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_6 * __pyx_v_data.strides[0]) )))); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 301; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -20135,7 +20135,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_62_mean_std(CYTHON_UNUSED PyObject 
  *     for index in range(length):
  *         value = data[index]
  *         delta = value - mean             # <<<<<<<<<<<<<<
- *         mean = mean + delta / (index + 1)
+ *         mean += delta / (index + 1)
  *         M2 += delta * (value - mean)
  */
     __pyx_t_1 = PyFloat_FromDouble(__pyx_v_mean); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 302; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -20150,7 +20150,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_62_mean_std(CYTHON_UNUSED PyObject 
     /* "silx/math/combo.pyx":303
  *         value = data[index]
  *         delta = value - mean
- *         mean = mean + delta / (index + 1)             # <<<<<<<<<<<<<<
+ *         mean += delta / (index + 1)             # <<<<<<<<<<<<<<
  *         M2 += delta * (value - mean)
  * 
  */
@@ -20158,7 +20158,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_62_mean_std(CYTHON_UNUSED PyObject 
 
     /* "silx/math/combo.pyx":304
  *         delta = value - mean
- *         mean = mean + delta / (index + 1)
+ *         mean += delta / (index + 1)
  *         M2 += delta * (value - mean)             # <<<<<<<<<<<<<<
  * 
  *     if length <= ddof:
@@ -20500,7 +20500,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_64_mean_std(CYTHON_UNUSED PyObject 
  *     for index in range(length):
  *         value = data[index]             # <<<<<<<<<<<<<<
  *         delta = value - mean
- *         mean = mean + delta / (index + 1)
+ *         mean += delta / (index + 1)
  */
     __pyx_t_6 = __pyx_v_index;
     __pyx_t_1 = __Pyx_PyInt_From_unsigned_int((*((unsigned int *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_6 * __pyx_v_data.strides[0]) )))); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 301; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -20512,7 +20512,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_64_mean_std(CYTHON_UNUSED PyObject 
  *     for index in range(length):
  *         value = data[index]
  *         delta = value - mean             # <<<<<<<<<<<<<<
- *         mean = mean + delta / (index + 1)
+ *         mean += delta / (index + 1)
  *         M2 += delta * (value - mean)
  */
     __pyx_t_1 = PyFloat_FromDouble(__pyx_v_mean); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 302; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -20527,7 +20527,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_64_mean_std(CYTHON_UNUSED PyObject 
     /* "silx/math/combo.pyx":303
  *         value = data[index]
  *         delta = value - mean
- *         mean = mean + delta / (index + 1)             # <<<<<<<<<<<<<<
+ *         mean += delta / (index + 1)             # <<<<<<<<<<<<<<
  *         M2 += delta * (value - mean)
  * 
  */
@@ -20535,7 +20535,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_64_mean_std(CYTHON_UNUSED PyObject 
 
     /* "silx/math/combo.pyx":304
  *         delta = value - mean
- *         mean = mean + delta / (index + 1)
+ *         mean += delta / (index + 1)
  *         M2 += delta * (value - mean)             # <<<<<<<<<<<<<<
  * 
  *     if length <= ddof:
@@ -20878,7 +20878,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_66_mean_std(CYTHON_UNUSED PyObject 
  *     for index in range(length):
  *         value = data[index]             # <<<<<<<<<<<<<<
  *         delta = value - mean
- *         mean = mean + delta / (index + 1)
+ *         mean += delta / (index + 1)
  */
     __pyx_t_6 = __pyx_v_index;
     __pyx_t_1 = __Pyx_PyInt_From_unsigned_PY_LONG_LONG((*((unsigned PY_LONG_LONG *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_6 * __pyx_v_data.strides[0]) )))); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 301; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -20890,7 +20890,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_66_mean_std(CYTHON_UNUSED PyObject 
  *     for index in range(length):
  *         value = data[index]
  *         delta = value - mean             # <<<<<<<<<<<<<<
- *         mean = mean + delta / (index + 1)
+ *         mean += delta / (index + 1)
  *         M2 += delta * (value - mean)
  */
     __pyx_t_1 = PyFloat_FromDouble(__pyx_v_mean); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 302; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -20905,7 +20905,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_66_mean_std(CYTHON_UNUSED PyObject 
     /* "silx/math/combo.pyx":303
  *         value = data[index]
  *         delta = value - mean
- *         mean = mean + delta / (index + 1)             # <<<<<<<<<<<<<<
+ *         mean += delta / (index + 1)             # <<<<<<<<<<<<<<
  *         M2 += delta * (value - mean)
  * 
  */
@@ -20913,7 +20913,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_66_mean_std(CYTHON_UNUSED PyObject 
 
     /* "silx/math/combo.pyx":304
  *         delta = value - mean
- *         mean = mean + delta / (index + 1)
+ *         mean += delta / (index + 1)
  *         M2 += delta * (value - mean)             # <<<<<<<<<<<<<<
  * 
  *     if length <= ddof:
@@ -21255,7 +21255,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_68_mean_std(CYTHON_UNUSED PyObject 
  *     for index in range(length):
  *         value = data[index]             # <<<<<<<<<<<<<<
  *         delta = value - mean
- *         mean = mean + delta / (index + 1)
+ *         mean += delta / (index + 1)
  */
     __pyx_t_6 = __pyx_v_index;
     __pyx_t_1 = __Pyx_PyInt_From_unsigned_PY_LONG_LONG((*((unsigned PY_LONG_LONG *) ( /* dim=0 */ (__pyx_v_data.data + __pyx_t_6 * __pyx_v_data.strides[0]) )))); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 301; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -21267,7 +21267,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_68_mean_std(CYTHON_UNUSED PyObject 
  *     for index in range(length):
  *         value = data[index]
  *         delta = value - mean             # <<<<<<<<<<<<<<
- *         mean = mean + delta / (index + 1)
+ *         mean += delta / (index + 1)
  *         M2 += delta * (value - mean)
  */
     __pyx_t_1 = PyFloat_FromDouble(__pyx_v_mean); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 302; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
@@ -21282,7 +21282,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_68_mean_std(CYTHON_UNUSED PyObject 
     /* "silx/math/combo.pyx":303
  *         value = data[index]
  *         delta = value - mean
- *         mean = mean + delta / (index + 1)             # <<<<<<<<<<<<<<
+ *         mean += delta / (index + 1)             # <<<<<<<<<<<<<<
  *         M2 += delta * (value - mean)
  * 
  */
@@ -21290,7 +21290,7 @@ static PyObject *__pyx_pf_4silx_4math_5combo_68_mean_std(CYTHON_UNUSED PyObject 
 
     /* "silx/math/combo.pyx":304
  *         delta = value - mean
- *         mean = mean + delta / (index + 1)
+ *         mean += delta / (index + 1)
  *         M2 += delta * (value - mean)             # <<<<<<<<<<<<<<
  * 
  *     if length <= ddof:

@@ -300,7 +300,7 @@ def _mean_std(_number[:] data, cython.floating dtype, unsigned int ddof):
     for index in range(length):
         value = data[index]
         delta = value - mean
-        mean = mean + delta / (index + 1)
+        mean += delta / (index + 1)
         M2 += delta * (value - mean)
 
     if length <= ddof:
