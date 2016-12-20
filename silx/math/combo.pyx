@@ -277,8 +277,13 @@ class _MeanStdResult(object):
 @cython.boundscheck(False)
 @cython.wraparound(False)
 @cython.cdivision(True)
-def _mean_std(cython.floating[:] data, unsigned int ddof):
-    """See :func:`mean_std` for documentation."""
+def _mean_std(_number[:] data, cython.floating dtype, unsigned int ddof):
+    """See :func:`mean_std` for documentation.
+
+    The dtype argument is only there to use fused types to avoid duplicating
+    code for float32 and float64 implementation...
+    A better solution would be needed
+    """
     cdef:
         unsigned int length, index
         cython.floating mean, M2, delta
@@ -309,11 +314,11 @@ def _mean_std(cython.floating[:] data, unsigned int ddof):
 
 
 @cython.embedsignature(True)
-def mean_std(data not None, unsigned int ddof=0):
+def mean_std(data not None, dtype=None, unsigned int ddof=0):
     """Computes mean and estimation of std and variance in a single pass.
 
     NaNs are propagated.
-    Behavior with inf values differs from numpy equivalent.
+    Behavior with inf values differs from numpy equivalent functions.
 
     See: http://www.johndcook.com/blog/standard_deviation/
     See: https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
@@ -325,12 +330,33 @@ def mean_std(data not None, unsigned int ddof=0):
     DOI: 10.2307/1266577
 
     :param data: Array-like dataset
+    :param dtype:
+        Type to use in computing mean, std and variance.
+        Default: float64 for integers, data type for floating data.
+        Only 'float32' and 'float64' types are valid.
     :param int ddof:
-       Means Delta Degrees of Freedom.
-       The divisor used in calculations is data.size - ddof.
-       Default: 0 (as in numpy.std).
+        Means Delta Degrees of Freedom.
+        The divisor used in calculations is data.size - ddof.
+        Default: 0 (as in numpy.std).
     :returns: An object with mean, std and var attributes
     :raises: ValueError if data is empty
     """
-    return _mean_std(numpy.asanyarray(data).ravel(), ddof)
-    # TODO support int, dtype argument default float64 for int, else dtype
+    cdef:
+        bint is_double = True
+
+    data = numpy.asanyarray(data).ravel()
+
+    # Select the dtype to use to compute mean and std
+    if dtype is None:
+        if data.dtype.name == 'float32':
+            is_double = False
+    else:
+        dtype = numpy.dtype(dtype)
+        assert dtype.kind == 'f'
+        if dtype.name != 'float64':
+            is_double = False
+
+    if is_double:
+        return _mean_std(data, <double> 0., ddof)
+    else:
+        return _mean_std(data, <float> 0., ddof)

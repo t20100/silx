@@ -161,17 +161,18 @@ class TestMinMax(ParametricTestCase):
 class TestMeanStd(ParametricTestCase):
     """Test mean_std combo against numpy"""
 
-    def _test_mean_std(self, data, ddof):
+    def _test_mean_std(self, data, dtype=None, ddof=0):
         """Compare mean_std with numpy for the given dataset
 
         :param numpy.ndarray data: Data set to use for test
+        :param dtype: The dtype to use for computation (or None)
         :param int ddof: Means Delta Degrees of Freedom std argument
         """
-        result = mean_std(data, ddof=ddof)
+        result = mean_std(data, dtype=dtype, ddof=ddof)
         self.assertEqual(result.ddof, ddof)
         self.assertEqual(result.length, data.size)
 
-        mean = numpy.mean(data)
+        mean = numpy.mean(data, dtype=dtype)
         if numpy.isnan(mean):
             self.assertTrue(numpy.isnan(result.mean))
         else:
@@ -182,20 +183,22 @@ class TestMeanStd(ParametricTestCase):
             self.assertTrue(numpy.isnan(result.var))
 
         else:
-            std = numpy.std(data, ddof=ddof)
+            std = numpy.std(data, dtype=dtype, ddof=ddof)
             self.assertTrue(numpy.allclose(result.std, std))
 
-            var = numpy.var(data, ddof=ddof)
+            var = numpy.var(data, dtype=dtype, ddof=ddof)
             self.assertTrue(numpy.allclose(result.var, var))
 
     def test(self):
-        """Test Mean_std with different datasets"""
-
-        for dtype in FLOATING_DTYPES:
-            for ddof in (0., 1.):
-                with self.subTest(dtype=dtype, ddof=ddof):
-                    data = numpy.arange(1000., dtype=dtype)
-                    self._test_mean_std(data, ddof)
+        """Test mean_std with different datasets"""
+        for data_dtype in FLOATING_DTYPES:
+            for result_dtype in FLOATING_DTYPES:
+                for ddof in (0., 1.):
+                    with self.subTest(data_dtype=data_dtype,
+                                      result_dtype=result_dtype,
+                                      ddof=ddof):
+                        data = numpy.arange(1000., dtype=data_dtype)
+                        self._test_mean_std(data, result_dtype, ddof)
 
     def test_no_data(self):
         """Test mean_std without data of with too small data"""
@@ -213,7 +216,7 @@ class TestMeanStd(ParametricTestCase):
                 self._test_mean_std(data, ddof=1)
 
     def test_nan_data(self):
-        """Test min_max with NaN in data"""
+        """Test mean_std with NaN in data"""
         tests = [
             (float('nan'), float('nan')),  # All NaNs
             (2.0, float('nan'), 1.0),  # Some NaN
