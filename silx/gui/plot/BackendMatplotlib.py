@@ -28,7 +28,7 @@ from __future__ import division
 
 __authors__ = ["V.A. Sole", "T. Vincent"]
 __license__ = "MIT"
-__date__ = "15/09/2016"
+__date__ = "18/01/2017"
 
 
 import logging
@@ -89,7 +89,10 @@ class BackendMatplotlib(BackendBase.BackendBase):
         self.ax2.set_autoscaley_on(True)
         self.ax.set_zorder(1)
         # this works but the figure color is left
-        self.ax.set_axis_bgcolor('none')
+        if matplotlib.__version__[0] < '2':
+            self.ax.set_axis_bgcolor('none')
+        else:
+            self.ax.set_facecolor('none')
         self.fig.sca(self.ax)
 
         self._overlays = set()
