@@ -453,7 +453,7 @@ class BackendOpenGL(BackendBase.BackendBase, qt.QGLWidget):
 
     def _paintDirectGL(self):
         self._renderPlotAreaGL()
-        self._plotFrame.render()
+        self._plotFrame.render(self._devicePixelRatio)
         self._renderMarkersGL()
         self._renderOverlayGL()
 
@@ -485,7 +485,7 @@ class BackendOpenGL(BackendBase.BackendBase, qt.QGLWidget):
             with plotFBOTex:
                 gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_STENCIL_BUFFER_BIT)
                 self._renderPlotAreaGL()
-                self._plotFrame.render()
+                self._plotFrame.render(self._devicePixelRatio)
 
         # Render plot in screen coords
         gl.glViewport(0, 0, self._plotFrame.size[0], self._plotFrame.size[1])
@@ -774,7 +774,7 @@ class BackendOpenGL(BackendBase.BackendBase, qt.QGLWidget):
 
         # Render marker labels
         for label in labels:
-            label.render(self.matScreenProj)
+            label.render(self.matScreenProj, self._devicePixelRatio)
 
         gl.glDisable(gl.GL_SCISSOR_TEST)
 

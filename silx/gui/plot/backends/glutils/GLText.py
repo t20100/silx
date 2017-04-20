@@ -89,10 +89,6 @@ class Text2D(object):
 
     _textures = {}
 
-    _rasterTextCache = {}
-    """Internal cache storing already rasterized text"""
-    # TODO limit cache size and discard least recent used
-
     def __init__(self, text, x=0, y=0,
                  color=(0., 0., 0., 1.),
                  bgColor=None,
@@ -118,11 +114,12 @@ class Text2D(object):
         self._rotate = numpy.radians(rotate)
 
     @classmethod
-    def _getTexture(cls, text):
-        key = getGLContext(), text
+    def _getTexture(cls, text, devicePixelRatio):
+        key = getGLContext(), text, devicePixelRatio
         if key not in cls._textures:
             image, offset = font.rasterText(text,
-                                            font.getDefaultFontFamily())
+                                            font.getDefaultFontFamily(),
+                                            devicePixelRatio=devicePixelRatio)
             cls._textures[key] = (Texture(gl.GL_RED,
                                           data=image,
                                           minFilter=gl.GL_NEAREST,
@@ -176,7 +173,7 @@ class Text2D(object):
 
         return vertices
 
-    def render(self, matrix):
+    def render(self, matrix, devicePixelRatio):
         if not self.text:
             return
 
@@ -184,7 +181,7 @@ class Text2D(object):
         prog.use()
 
         texUnit = 0
-        texture, offset = self._getTexture(self.text)
+        texture, offset = self._getTexture(self.text, devicePixelRatio)
 
         gl.glUniform1i(prog.uniforms['texText'], texUnit)
 

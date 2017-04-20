@@ -464,7 +464,7 @@ class GLPlotFrame(object):
     _program = Program(
         _SHADERS['vertex'], _SHADERS['fragment'], attrib0='position')
 
-    def render(self):
+    def render(self, devicePixelRatio):
         if self._renderResources is None:
             self._buildVerticesAndLabels()
         vertices, gridVertices, labels = self._renderResources
@@ -493,7 +493,7 @@ class GLPlotFrame(object):
         gl.glDrawArrays(gl.GL_LINES, 0, len(vertices))
 
         for label in labels:
-            label.render(matProj)
+            label.render(matProj, devicePixelRatio)
 
     def renderGrid(self):
         if self._grid == self.GRID_NONE:
