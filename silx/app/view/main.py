@@ -1,6 +1,6 @@
 # coding: utf-8
 # /*##########################################################################
-# Copyright (C) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2019 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -121,7 +121,7 @@ def mainQt(options):
         silx.config.DEFAULT_PLOT_BACKEND = "opengl"
 
     # NOTE: under Windows, cmd does not convert `*.tif` into existing files
-    options.files = silx.utils.files.expand_filenames(options.files)
+    # TODO options.files = silx.utils.files.expand_filenames(options.files)
 
     for filename in options.files:
         # TODO: Would be nice to add a process widget and a cancel button

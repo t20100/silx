@@ -483,6 +483,7 @@ def _open_local_file(filename):
         except IOError:
             debugging_info.append((sys.exc_info(),
                                    "File '%s' can't be read as spec file." % filename))
+
     finally:
         for exc_info, message in debugging_info:
             logger.debug(message, exc_info=exc_info)
@@ -565,6 +566,9 @@ def open(filename):  # pylint:disable=redefined-builtin
         h5_file = _open_local_file(url.file_path())
     elif url.scheme() in ["fabio"]:
         raise IOError("URL '%s' containing fabio scheme is not supported" % filename)
+    elif url.scheme() in ["broker"]:
+        from . import brokerh5
+        return brokerh5.DataBrokerFile(filename)
     else:
         # That's maybe an URL supported by h5pyd
         uri = six.moves.urllib.parse.urlparse(filename)
