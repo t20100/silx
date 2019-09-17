@@ -80,20 +80,25 @@ class DataBrokerFile(commonh5.File):
             self.add_node(entry_group)
 
 
-_files = {}
+_files = weakref.WeakValueDictionary()  # Store currently opened brokers
 
 
 def dataBrokerFile(name):
+    """Returns a databroker File object accessor.
+
+    This function reuses existing databroker File object
+    and only creates new one when not existing.
+
+    :param str name: The URL of the databroker resource to open
+    """
     url = DataUrl(name)
     if url.scheme() != 'broker':
         raise ValueError("Not a broker URL: %s" % name)
 
     filename = url.file_path()[1:]
-    if filename in _files:
-        f = _files[filename]()
-        if f is not None:
-            return f
+    f = _files.get(filename)
+    if f is None:
+        f = DataBrokerFile(name)
+        _files[filename] = f
 
-    f = DataBrokerFile(filename)
-    _files[filename] = weakref.ref(f)
     return f
