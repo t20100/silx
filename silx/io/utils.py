@@ -568,7 +568,7 @@ def open(filename):  # pylint:disable=redefined-builtin
         raise IOError("URL '%s' containing fabio scheme is not supported" % filename)
     elif url.scheme() in ["broker"]:
         from . import brokerh5
-        return brokerh5.DataBrokerFile(filename)
+        return brokerh5.dataBrokerFile(filename)
     else:
         # That's maybe an URL supported by h5pyd
         uri = six.moves.urllib.parse.urlparse(filename)
