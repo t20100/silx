@@ -250,7 +250,12 @@ class ClickOrDrag(StateMachine):
             dx2 = (x - self.initPos[0]) ** 2
             dy2 = (y - self.initPos[1]) ** 2
             if (dx2 + dy2) >= self.machine.DRAG_THRESHOLD_SQUARE_DIST:
-                self.goto('drag', self.initPos, (x, y), self.button)
+                if self.machine.beginDrag(*self.initPos, self.button):
+                    self.goto('drag', self.initPos, (x, y), self.button)
+                    return True
+                else:
+                    self.goto('idle')
+                    return False
 
         def onRelease(self, x, y, btn):
             if btn == self.button:
@@ -262,7 +267,6 @@ class ClickOrDrag(StateMachine):
         def enterState(self, initPos, curPos, btn):
             self.initPos = initPos
             self.button = btn
-            self.machine.beginDrag(*initPos, btn)
             self.machine.drag(*curPos, btn)
 
         def onMove(self, x, y):
@@ -337,3 +341,160 @@ class ClickOrDrag(StateMachine):
         :param str btn: The mouse button for which a drag is done.
         """
         pass
+
+
+# clickOrDragManager ##########################################################
+
+class _BaseInteraction(object):
+    """Protocol API for interaction implementation.
+
+    :param str button: Button associated to this interaction.
+    """
+
+    def __init__(self, button):
+        self.__button = button
+
+    button = property(lambda self: self.__button,
+                      doc="Button associated to this interaction (str)")
+
+
+class ClickInteraction(_BaseInteraction):
+    """Protocol API for click interaction implementation.
+
+    :param str button: Button associated to this interaction.
+    """
+
+    def accept(self, x, y):
+        """Called upon mouse press to know if click interaction is possible.
+
+        :param int x: X mouse position in pixels.
+        :param int y: Y mouse position in pixels.
+        :returns: True to accept possible click, False otherwise.
+        :rtype: bool
+        """
+        return True
+
+    def click(self, x, y):
+        """Called upon a button supporting click.
+
+        :param int x: X mouse position in pixels.
+        :param int y: Y mouse position in pixels.
+        :returns: True to stop further handling of the click, False otherwise.
+        :rtype: bool
+        """
+        return True
+
+
+class DragInteraction(_BaseInteraction):
+    """Protocol API for drag interaction implementation.
+
+    :param str button: Button associated to this interaction.
+    """
+
+    def accept(self, x, y):
+        """Called upon mouse press to know if drag interaction is possible.
+
+        :param int x: X mouse position in pixels.
+        :param int y: Y mouse position in pixels.
+        :returns: True to accept possible drag gesture, False otherwise.
+        :rtype: bool
+        """
+        return True
+
+    def begin(self, x, y):
+        """Called at the beginning of a drag gesture with mouse button pressed.
+
+        :param int x: X mouse position in pixels.
+        :param int y: Y mouse position in pixels.
+        :returns: True to acquire focus for the drag gesture, False otherwise.
+        :rtype: bool
+        """
+        return True
+
+    def drag(self, x, y):
+        """Called on mouse moved during a drag gesture.
+
+        :param int x: X mouse position in pixels.
+        :param int y: Y mouse position in pixels.
+        """
+        pass
+
+    def end(self, startPoint, endPoint):
+        """Called at the end of a drag gesture when the mouse button is released.
+
+        :param List[int] startPoint:
+            (x, y) mouse position in pixels at the beginning of the drag.
+        :param List[int] endPoint:
+            (x, y) mouse position in pixels at the end of the drag.
+        """
+        pass
+
+    def cancel(self):
+        pass
+
+
+class ClickDragManager(ClickOrDrag):
+    """Handle interaction and focus between multiple click and drag interactions
+
+    :param clickers: List of (btn, handler) for click interaction.
+    :type clickers: List of 2-tuple (str, ClickInteraction)
+    :param draggers: List of (btn, handler) for drag interaction.
+    :type draggers: List of 2-tuple (str, DragInteraction)
+    """
+
+    class Idle(ClickOrDrag.Idle):
+        def onPress(self, x, y, btn):
+            for handler in self.machine.draggers:
+                if btn == handler.button and handler.accept(x, y):
+                    self.machine.currentDragger = handler
+                    self.goto('clickOrDrag', x, y, btn)
+                    return True
+
+            for handler in self.machine.clickers:
+                if btn == handler.button and handler.accept(x, y):
+                    self.goto('click', x, y, btn)
+                    return True
+
+            return False
+
+    def __init__(self, clickers=(), draggers=()):
+        self.__clickers = tuple(clickers)  # List of ClickInteraction
+        self.__draggers = tuple(draggers)  # List of DragInteraction
+        self.__dragHandler = None
+        self.currentDragger = None
+
+        super().__init__(
+            clickButtons=set(handler.button for handler in self.__clickers),
+            dragButtons=set(handler.button for handler in self.__draggers))
+
+    clickers = property(lambda self: self.__clickers, doc="List[ClickInteraction]")
+
+    draggers = property(lambda self: self.__draggers, doc="List[DragInteraction]")
+
+    def click(self, x, y, btn):
+        for handler in self.__clickers:
+            if btn == handler.button and handler.click(x, y):
+                break
+
+    def beginDrag(self, x, y, btn):
+        if self.currentDragger is not None:
+            assert btn == self.currentDragger.button
+            if self.currentDragger.begin(x, y):
+                return True
+            else:
+                self.currentDragger = None
+        return False
+
+    def drag(self, x, y, btn):
+        if self.currentDragger is not None:
+            self.currentDragger.drag(x, y)
+
+    def endDrag(self, startPoint, endPoint, btn):
+        if self.currentDragger is not None:
+            self.currentDragger.end(startPoint, endPoint)
+            self.currentDragger = None
+
+    def cancel(self):
+        if self.currentDragger is not None:
+            self.currentDragger.cancel()
+            self.currentDragger = None
