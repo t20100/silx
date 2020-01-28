@@ -120,27 +120,32 @@ class _PlotInteraction(object):
 
 # Click interaction handlers
 
-class EventProxyLeftClickInteraction(_PlotInteraction, ClickInteraction):
-    """Forward left click events to PlotWidget.
+class EventClickInteraction(_PlotInteraction, ClickInteraction):
+    """Forward click events to PlotWidget.
 
     :param plot: The plot to apply modifications to.
+    :param str button: Button associated to this interaction
+    :param bool withDoubleClick:
+        True to handle double click, False otherwise.
     """
 
     _DOUBLE_CLICK_TIMEOUT = 0.4
 
-    def __init__(self, plot):
+    def __init__(self, plot, button, withDoubleClick):
+        self._withDoubleClick = withDoubleClick
         self._lastClick = 0., None
 
         _PlotInteraction.__init__(self, plot)
-        ClickInteraction.__init__(self, button=LEFT_BTN)
+        ClickInteraction.__init__(self, button)
 
     def click(self, x, y):
         lastClickTime, lastClickPos = self._lastClick
 
         # Signal mouse double clicked event first
-        if (time.time() - lastClickTime) <= self._DOUBLE_CLICK_TIMEOUT:
+        if (self._withDoubleClick and
+                (time.time() - lastClickTime) <= self._DOUBLE_CLICK_TIMEOUT):
             # Use position of first click
-            eventDict = prepareMouseSignal('mouseDoubleClicked', 'left',
+            eventDict = prepareMouseSignal('mouseDoubleClicked', self.button,
                                            *lastClickPos)
             self.plot.notify(**eventDict)
 
@@ -149,33 +154,13 @@ class EventProxyLeftClickInteraction(_PlotInteraction, ClickInteraction):
             # Signal mouse clicked event
             dataPos = self.plot.pixelToData(x, y)
             assert dataPos is not None
-            eventDict = prepareMouseSignal('mouseClicked', 'left',
+            eventDict = prepareMouseSignal('mouseClicked', self.button,
                                            dataPos[0], dataPos[1],
                                            x, y)
             self.plot.notify(**eventDict)
 
-            self._lastClick = time.time(), (dataPos[0], dataPos[1], x, y)
-        return False
-
-
-class EventProxyRightClickInteraction(_PlotInteraction, ClickInteraction):
-    """Forward right click events to PlotWidget.
-
-    :param plot: The plot to apply modifications to.
-    """
-
-    def __init__(self, plot):
-        _PlotInteraction.__init__(self, plot)
-        ClickInteraction.__init__(self, button=RIGHT_BTN)
-
-    def click(self, x, y):
-        # Signal mouse clicked event
-        dataPos = self.plot.pixelToData(x, y)
-        assert dataPos is not None
-        eventDict = prepareMouseSignal('mouseClicked', 'right',
-                                       dataPos[0], dataPos[1],
-                                       x, y)
-        self.plot.notify(**eventDict)
+            if self._withDoubleClick:
+                self._lastClick = time.time(), (dataPos[0], dataPos[1], x, y)
         return False
 
 
@@ -1401,8 +1386,8 @@ class ZoomInteractionMode(HoverMarkersInteractionManager):
         super().__init__(
             plot,
             clickers=(
-                EventProxyLeftClickInteraction(plot),
-                EventProxyRightClickInteraction(plot),
+                EventClickInteraction(plot, LEFT_BTN, withDoubleClick=True),
+                EventClickInteraction(plot, RIGHT_BTN, withDoubleClick=False),
                 ItemSelectionClickInteraction(plot, button=LEFT_BTN),
                 ),
             draggers=(
@@ -1427,8 +1412,8 @@ class PanInteractionMode(HoverMarkersInteractionManager):
         super().__init__(
             plot,
             clickers=(
-                EventProxyLeftClickInteraction(plot),
-                EventProxyRightClickInteraction(plot),
+                EventClickInteraction(plot, LEFT_BTN, withDoubleClick=True),
+                EventClickInteraction(plot, RIGHT_BTN, withDoubleClick=False),
                 ItemSelectionClickInteraction(plot, button=LEFT_BTN),
                 ),
             draggers=(
@@ -1448,8 +1433,8 @@ class SelectInteractionMode(HoverMarkersInteractionManager):
         super().__init__(
             plot,
             clickers=(
-                EventProxyLeftClickInteraction(plot),
-                EventProxyRightClickInteraction(plot),
+                EventClickInteraction(plot, LEFT_BTN, withDoubleClick=True),
+                EventClickInteraction(plot, RIGHT_BTN, withDoubleClick=False),
                 ItemSelectionClickInteraction(plot, button=LEFT_BTN),
                 ),
             draggers=(
