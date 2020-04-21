@@ -406,21 +406,27 @@ class Geometry(core.Elem):
         :param int nbVertices:
             The number of vertices to render or None to render all vertices.
         """
+        _logger.warning('>>> Geometry._draw')
         if program is not None:
+            _logger.warning('Geometry._draw: useAttribute')
             self.useAttribute(program)
 
         if self._indices is None:
             if nbVertices is None:
                 nbVertices = self.nbVertices
+            _logger.warning('Geometry._draw: glDrawArrays')
             gl.glDrawArrays(self._MODES[self._mode], 0, nbVertices)
         else:
             if nbVertices is None:
                 nbVertices = self._indices.size
+            _logger.warning('Geometry._draw: vbos')
             with self._vbos['__indices__']:
+                _logger.warning('Geometry._draw: glDrawElements')
                 gl.glDrawElements(self._MODES[self._mode],
                                   nbVertices,
                                   _glutils.numpyToGLType(self._indices.dtype),
                                   ctypes.c_void_p(0))
+        _logger.warning('<<< Geometry._draw')
 
 
 # Lines #######################################################################
@@ -1310,6 +1316,7 @@ class _Points(Geometry):
         pass
 
     def renderGL2(self, ctx):
+        _logger.warning('>>> _Points.renderGL2')
         valueType, valueToColorDecl, valueToColorCall = \
             self._shaderValueDefinition()
         vertexShader = self._shaders[0].substitute(
@@ -1322,24 +1329,31 @@ class _Points(Geometry):
             valueToColorDecl=valueToColorDecl,
             valueToColorCall=valueToColorCall,
             alphaSymbolDecl=self._MARKER_FUNCTIONS[self.marker])
+        _logger.warning('_Points.renderGL2: retrieve/create program')
         program = ctx.glCtx.prog(vertexShader, fragmentShader,
                                  attrib0=self.attrib0)
+        _logger.warning('_Points.renderGL2: program.use')
         program.use()
 
+        _logger.warning('_Points.renderGL2: glEnable')
         gl.glEnable(gl.GL_VERTEX_PROGRAM_POINT_SIZE)  # OpenGL 2
         gl.glEnable(gl.GL_POINT_SPRITE)  # OpenGL 2
         # gl.glEnable(gl.GL_PROGRAM_POINT_SIZE)
 
+        _logger.warning('_Points.renderGL2: setUniformMatrix')
         program.setUniformMatrix('matrix', ctx.objectToNDC.matrix)
         program.setUniformMatrix('transformMat',
                                  ctx.objectToCamera.matrix,
                                  safe=True)
 
+        _logger.warning('_Points.renderGL2: ctx.setupProgram')
         ctx.setupProgram(program)
 
         self._renderGL2PreDrawHook(ctx, program)
 
+        _logger.warning('_Points.renderGL2: _draw')
         self._draw(program)
+        _logger.warning('<<< _Points.renderGL2')
 
 
 class Points(_Points):

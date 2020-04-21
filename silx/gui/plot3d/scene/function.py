@@ -553,15 +553,19 @@ class Colormap(event.Notifier, ProgramFunction):
         :param GLProgram program: The program to set-up.
                                   It MUST be in use and using this function.
         """
+        _logger.warning('>>> Colormap.setupProgram')
         self.prepareGL2(context)  # TODO see how to handle
 
         if self._texture is None:  # No colormap
             return
 
+        _logger.warning('Colormap.setupProgram >>> _texture.bind')
         self._texture.bind()
+        _logger.warning('Colormap.setupProgram <<< _texture.bind')
 
         gl.glUniform1i(program.uniforms['cmap.texture'],
                        self._texture.texUnit)
+        _logger.warning('Colormap.setupProgram <<< glUniform1i cmap.texture')
 
         min_, max_ = self.range_
         if self._norm == 'log':
@@ -574,13 +578,20 @@ class Colormap(event.Notifier, ProgramFunction):
             normID = 0
 
         gl.glUniform1i(program.uniforms['cmap.normalization'], normID)
+        _logger.warning('Colormap.setupProgram <<< glUniform1i cmap.normalization')
         gl.glUniform1f(program.uniforms['cmap.min'], min_)
+        _logger.warning('Colormap.setupProgram <<< glUniform1i cmap.min')
         gl.glUniform1f(program.uniforms['cmap.oneOverRange'],
                        (1. / (max_ - min_)) if max_ != min_ else 0.)
+        _logger.warning('<<< Colormap.setupProgram')
 
     def prepareGL2(self, context):
+        _logger.warning('>>> Colormap.prepareGL2')
         if self._texture is None or self._update_texture:
+            _logger.warning('Colormap.prepareGL2: update texture')
+
             if self._texture is not None:
+                _logger.warning('Colormap.prepareGL2 >>> _texture.discard')
                 self._texture.discard()
 
             colormap = numpy.empty(
@@ -590,6 +601,7 @@ class Colormap(event.Notifier, ProgramFunction):
 
             format_ = gl.GL_RGBA if colormap.shape[-1] == 4 else gl.GL_RGB
 
+            _logger.warning('Colormap.prepareGL2 >>> _glutils.Texture')
             self._texture = _glutils.Texture(
                 format_, colormap, format_,
                 texUnit=self._COLORMAP_TEXTURE_UNIT,
@@ -597,3 +609,4 @@ class Colormap(event.Notifier, ProgramFunction):
                 magFilter=gl.GL_NEAREST,
                 wrap=gl.GL_CLAMP_TO_EDGE)
             self._update_texture = False
+        _logger.warning('<<< Colormap.prepareGL2')
