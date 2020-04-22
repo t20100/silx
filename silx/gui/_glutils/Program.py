@@ -65,10 +65,13 @@ class Program(object):
 
     @staticmethod
     def _compileGL(vertexShader, fragmentShader, attrib0):
+        print('>>> Program._compileGL')
         program = gl.glCreateProgram()
 
+        print('Program.use: glBindAttribLocation')
         gl.glBindAttribLocation(program, 0, attrib0.encode('ascii'))
 
+        print('Program.use: glCreateShader(gl.GL_VERTEX_SHADER)')
         vertex = gl.glCreateShader(gl.GL_VERTEX_SHADER)
         gl.glShaderSource(vertex, vertexShader)
         gl.glCompileShader(vertex)
@@ -77,6 +80,7 @@ class Program(object):
         gl.glAttachShader(program, vertex)
         gl.glDeleteShader(vertex)
 
+        print('Program.use: glCreateShader(gl.GL_FRAGMENT_SHADER)')
         fragment = gl.glCreateShader(gl.GL_FRAGMENT_SHADER)
         gl.glShaderSource(fragment, fragmentShader)
         gl.glCompileShader(fragment)
@@ -86,10 +90,12 @@ class Program(object):
         gl.glAttachShader(program, fragment)
         gl.glDeleteShader(fragment)
 
+        print('Program.use: glLinkProgram')
         gl.glLinkProgram(program)
         if gl.glGetProgramiv(program, gl.GL_LINK_STATUS) != gl.GL_TRUE:
             raise RuntimeError(gl.glGetProgramInfoLog(program))
 
+        print('Program.use: attributes')
         attributes = {}
         for index in range(gl.glGetProgramiv(program,
                                              gl.GL_ACTIVE_ATTRIBUTES)):
@@ -97,12 +103,14 @@ class Program(object):
             namestr = name.decode('ascii')
             attributes[namestr] = gl.glGetAttribLocation(program, name)
 
+        print('Program.use: uniforms')
         uniforms = {}
         for index in range(gl.glGetProgramiv(program, gl.GL_ACTIVE_UNIFORMS)):
             name = gl.glGetActiveUniform(program, index)[0]
             namestr = name.decode('ascii')
             uniforms[namestr] = gl.glGetUniformLocation(program, name)
 
+        print('<<< Program._compileGL', program, attributes, uniforms)
         return program, attributes, uniforms
 
     def _getProgramInfo(self):
@@ -149,22 +157,29 @@ class Program(object):
 
     def use(self):
         """Make use of the program, compiling it if necessary"""
+        print('>>> Program.use')
         glcontext = Context.getCurrent()
 
         if glcontext not in self._programs:
+            print('Program.use: start compile')
             self._programs[glcontext] = self._compileGL(
                 self._vertexShader,
                 self._fragmentShader,
                 self._attrib0)
 
-        if _logger.getEffectiveLevel() <= logging.DEBUG:
+        if 1: #_logger.getEffectiveLevel() <= logging.DEBUG:
+            print('Program.use: validate program')
             gl.glValidateProgram(self.program)
             if gl.glGetProgramiv(
                     self.program, gl.GL_VALIDATE_STATUS) != gl.GL_TRUE:
+                print('Program.use: Cannot validate program: ',
+                      gl.glGetProgramInfoLog(self.program))
                 _logger.debug('Cannot validate program: %s',
                               gl.glGetProgramInfoLog(self.program))
 
+        print('Program.use: glUseProgram')
         gl.glUseProgram(self.program)
+        print('<<< Program.use')
 
     def setUniformMatrix(self, name, value, transpose=True, safe=False):
         """Wrap glUniformMatrix[2|3|4]fv
