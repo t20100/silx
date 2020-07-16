@@ -50,6 +50,7 @@ from . import core
 from . import transform
 from . import utils
 from .function import Colormap
+from .mixins import DataTextureMixIn
 
 _logger = logging.getLogger(__name__)
 
@@ -2001,7 +2002,7 @@ class ColormapMesh3D(Geometry):
 
 # ImageData ##################################################################
 
-class _Image(Geometry):
+class _Image(Geometry, DataTextureMixIn):
     """Base class for ImageData and ImageRgba"""
 
     _shaders = ("""
@@ -2054,46 +2055,32 @@ class _Image(Geometry):
                                dtype=numpy.float32)
 
     def __init__(self, data, copy=True):
-        super(_Image, self).__init__(mode='triangle_strip',
-                                     position=self._UNIT_SQUARE)
+        Geometry.__init__(
+            self, mode='triangle_strip', position=self._UNIT_SQUARE)
 
-        self._texture = None
-        self._update_texture = True
-        self._update_texture_filter = False
-        self._data = None
-        self.setData(data, copy)
+        data = numpy.array(data, copy=False)
+        internal, format_ = self._textureFormat(data)
+        DataTextureMixIn.__init__(
+            self,
+            ndim=2,
+            data=data,
+            copy=copy,
+            internal=internal,
+            format_=format_)
+
         self._alpha = 1.
-        self._interpolation = 'linear'
 
         self.isBackfaceVisible = True
 
     def setData(self, data, copy=True):
-        assert isinstance(data, numpy.ndarray)
-
-        if copy:
-            data = numpy.array(data, copy=True)
-
-        self._data = data
-        self._update_texture = True
         # By updating the position rather than always using a unit square
         # we benefit from Geometry bounds handling
-        self.setAttribute('position', self._UNIT_SQUARE * (self._data.shape[1], self._data.shape[0]))
-        self.notify()
+        data = numpy.array(data, copy=False)
+        self.setAttribute(
+            'position', self._UNIT_SQUARE * (data.shape[1], data.shape[0]))
 
-    def getData(self, copy=True):
-        return numpy.array(self._data, copy=copy)
-
-    @property
-    def interpolation(self):
-        """The texture interpolation mode: 'linear' or 'nearest'"""
-        return self._interpolation
-
-    @interpolation.setter
-    def interpolation(self, interpolation):
-        assert interpolation in ('linear', 'nearest')
-        self._interpolation = interpolation
-        self._update_texture_filter = True
-        self.notify()
+        internal, format_ = self._textureFormat(data)
+        super().setData(data, copy, internal, format_)
 
     @property
     def alpha(self):
@@ -2105,50 +2092,21 @@ class _Image(Geometry):
         self._alpha = float(alpha)
         self.notify()
 
-    def _textureFormat(self):
+    def _textureFormat(self, data):
         """Implement this method to provide texture internal format and format
 
+        :param numpy.ndarray data: The data for which to get format info
         :return: 2-tuple of gl flags (internalFormat, format)
         """
         raise NotImplementedError(
             "This method must be implemented in a subclass")
 
     def prepareGL2(self, ctx):
-        if self._texture is None or self._update_texture:
-            if self._texture is not None:
-                self._texture.discard()
-
-            if self.interpolation == 'nearest':
-                filter_ = gl.GL_NEAREST
-            else:
-                filter_ = gl.GL_LINEAR
-            self._update_texture = False
-            self._update_texture_filter = False
-            if self._data.size == 0:
-                self._texture = None
-            else:
-                internalFormat, format_ = self._textureFormat()
-                self._texture = _glutils.Texture(
-                    internalFormat,
-                    self._data,
-                    format_,
-                    minFilter=filter_,
-                    magFilter=filter_,
-                    wrap=gl.GL_CLAMP_TO_EDGE)
-
-        if self._update_texture_filter and self._texture is not None:
-            self._update_texture_filter = False
-            if self.interpolation == 'nearest':
-                filter_ = gl.GL_NEAREST
-            else:
-                filter_ = gl.GL_LINEAR
-            self._texture.minFilter = filter_
-            self._texture.magFilter = filter_
-
-        super(_Image, self).prepareGL2(ctx)
+        DataTextureMixIn.prepareGL2(self, ctx)
+        Geometry.prepareGL2(self, ctx)
 
     def renderGL2(self, ctx):
-        if self._texture is None:
+        if self.getData(copy=False).size == 0:
             return  # Nothing to render
 
         with self.viewport.light.turnOff():
@@ -2187,14 +2145,14 @@ class _Image(Geometry):
                                  safe=True)
         gl.glUniform1f(program.uniforms['alpha'], self._alpha)
 
-        shape = self._data.shape
+        shape = self.getData(copy=False).shape
         gl.glUniform2f(program.uniforms['dataScale'], 1./shape[1], 1./shape[0])
 
-        gl.glUniform1i(program.uniforms['data'], self._texture.texUnit)
+        gl.glUniform1i(program.uniforms['data'], self.texture.texUnit)
 
         ctx.setupProgram(program)
 
-        self._texture.bind()
+        self.texture.bind()
 
         self._renderGL2PreDrawHook(ctx, program)
 
@@ -2226,8 +2184,6 @@ class ImageData(_Image):
     def setData(self, data, copy=True):
         data = numpy.array(data, copy=copy, order='C', dtype=numpy.float32)
         # TODO support (u)int8|16
-        assert data.ndim == 2
-
         super(ImageData, self).setData(data, copy=False)
 
     @property
@@ -2239,7 +2195,7 @@ class ImageData(_Image):
         """Broadcast colormap changes"""
         self.notify(*args, **kwargs)
 
-    def _textureFormat(self):
+    def _textureFormat(self, data):
         return gl.GL_R32F, gl.GL_RED
 
     def _renderGL2PreDrawHook(self, ctx, program):
@@ -2282,8 +2238,8 @@ class ImageRgba(_Image):
 
         super(ImageRgba, self).setData(data, copy=False)
 
-    def _textureFormat(self):
-        format_ = gl.GL_RGBA if self._data.shape[2] == 4 else gl.GL_RGB
+    def _textureFormat(self, data):
+        format_ = gl.GL_RGBA if data.shape[2] == 4 else gl.GL_RGB
         return format_, format_
 
     def _shaderImageColorDecl(self):

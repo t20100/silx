@@ -40,9 +40,10 @@ from ..._glutils import gl
 from .function import Colormap
 from .primitives import Box, Geometry, PlaneInGroup
 from . import transform, utils
+from .mixins import DataTextureMixIn
 
 
-class ColormapMesh3D(Geometry):
+class ColormapMesh3D(Geometry, DataTextureMixIn):
     """A 3D mesh with color from a 3D texture."""
 
     _shaders = ("""
@@ -99,45 +100,27 @@ class ColormapMesh3D(Geometry):
     def __init__(self, position, normal, data, copy=True,
                  mode='triangles', indices=None, colormap=None):
         assert mode in self._TRIANGLE_MODES
-        data = numpy.array(data, copy=copy, order='C')
-        assert data.ndim == 3
-        self._data = data
-        self._texture = None
-        self._update_texture = True
-        self._update_texture_filter = False
+
         self._alpha = 1.
         self._colormap = colormap or Colormap()  # Default colormap
         self._colormap.addListener(self._cmapChanged)
-        self._interpolation = 'linear'
-        super(ColormapMesh3D, self).__init__(mode,
-                                             indices,
-                                             position=position,
-                                             normal=normal)
+
+        Geometry.__init__(
+            self, mode, indices, position=position, normal=normal)
+        DataTextureMixIn.__init__(self, ndim=3, data=data, copy=copy)
 
         self.isBackfaceVisible = True
         self.textureOffset = 0., 0., 0.
         """Offset to add to texture coordinates"""
 
     def setData(self, data, copy=True):
-        data = numpy.array(data, copy=copy, order='C')
-        assert data.ndim == 3
-        self._data = data
-        self._update_texture = True
+        """Set the data to use to color the mesh.
 
-    def getData(self, copy=True):
-        return numpy.array(self._data, copy=copy)
-
-    @property
-    def interpolation(self):
-        """The texture interpolation mode: 'linear' or 'nearest'"""
-        return self._interpolation
-
-    @interpolation.setter
-    def interpolation(self, interpolation):
-        assert interpolation in ('linear', 'nearest')
-        self._interpolation = interpolation
-        self._update_texture_filter = True
-        self.notify()
+        :param numpy.ndarray data:
+        :param bool copy:
+            True (default) to copy data, False to use as is (do not modify!)
+        """
+        super().setData(data, copy, internal=gl.GL_R32F, format_=gl.GL_RED)
 
     @property
     def alpha(self):
@@ -158,32 +141,8 @@ class ColormapMesh3D(Geometry):
         self.notify(*args, **kwargs)
 
     def prepareGL2(self, ctx):
-        if self._texture is None or self._update_texture:
-            if self._texture is not None:
-                self._texture.discard()
-
-            if self.interpolation == 'nearest':
-                filter_ = gl.GL_NEAREST
-            else:
-                filter_ = gl.GL_LINEAR
-            self._update_texture = False
-            self._update_texture_filter = False
-            self._texture = _glutils.Texture(
-                gl.GL_R32F, self._data, gl.GL_RED,
-                minFilter=filter_,
-                magFilter=filter_,
-                wrap=gl.GL_CLAMP_TO_EDGE)
-
-        if self._update_texture_filter:
-            self._update_texture_filter = False
-            if self.interpolation == 'nearest':
-                filter_ = gl.GL_NEAREST
-            else:
-                filter_ = gl.GL_LINEAR
-            self._texture.minFilter = filter_
-            self._texture.magFilter = filter_
-
-        super(ColormapMesh3D, self).prepareGL2(ctx)
+        DataTextureMixIn.prepareGL2(self, ctx)
+        Geometry.prepareGL2(self, ctx)
 
     def renderGL2(self, ctx):
         fragment = self._shaders[1].substitute(
@@ -211,16 +170,16 @@ class ColormapMesh3D(Geometry):
                                  safe=True)
         gl.glUniform1f(program.uniforms['alpha'], self._alpha)
 
-        shape = self._data.shape
+        shape = self.texture.shape
         scales = 1./shape[2], 1./shape[1], 1./shape[0]
         gl.glUniform3f(program.uniforms['dataScale'], *scales)
         gl.glUniform3f(program.uniforms['texCoordsOffset'], *self.textureOffset)
 
-        gl.glUniform1i(program.uniforms['data'], self._texture.texUnit)
+        gl.glUniform1i(program.uniforms['data'], self.texture.texUnit)
 
         ctx.setupProgram(program)
 
-        self._texture.bind()
+        self.texture.bind()
         self._draw(program)
 
         if not self.isBackfaceVisible:
