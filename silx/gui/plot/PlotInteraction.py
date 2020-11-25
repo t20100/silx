@@ -1112,7 +1112,7 @@ class ItemsInteraction(ClickOrDrag, _PlotInteraction):
                 else:
                     self.machine.plot.setGraphCursorShape()
 
-            return True
+            #return True
 
     def __init__(self, plot):
         self._pan = Pan(plot)
@@ -1350,62 +1350,115 @@ class FocusManager(StateMachine):
     """
     class Idle(State):
         def onPress(self, x, y, btn):
-            if btn == LEFT_BTN:
-                for eventHandler in self.machine.eventHandlers:
-                    requestFocus = eventHandler.handleEvent('press', x, y, btn)
-                    if requestFocus:
-                        self.goto('focus', eventHandler, btn)
-                        break
+            for eventHandler in self.machine.eventHandlers:
+                if eventHandler.handleEvent('press', x, y, btn):
+                    self.goto('focus', eventHandler, btn)
+                    break  # First handler requesting focus takes it
 
         def _processEvent(self, *args):
             for eventHandler in self.machine.eventHandlers:
-                consumeEvent = eventHandler.handleEvent(*args)
-                if consumeEvent:
-                    break
+                if eventHandler.handleEvent(*args):
+                    break  # First handle consuming event stops it
 
         def onMove(self, x, y):
             self._processEvent('move', x, y)
 
         def onRelease(self, x, y, btn):
-            if btn == LEFT_BTN:
-                self._processEvent('release', x, y, btn)
+            self._processEvent('release', x, y, btn)
 
         def onWheel(self, x, y, angle):
             self._processEvent('wheel', x, y, angle)
 
+        def validate(self):
+            # Validate focused handlers from latest to oldest
+            for handler in reversed(self.machine.focusHandlers):
+                handler.validate()
+            self.machine.focusHandlers = []  # Reset focused handlers
+
     class Focus(State):
         def enterState(self, eventHandler, btn):
             self.eventHandler = eventHandler
+            self.button = btn
+            try:
+                self.machine.focusHandlers.remove(eventHandler)
+            except ValueError:
+                pass
+            self.machine.focusHandlers.append(eventHandler)
             self.focusBtns = {btn}
 
-        def validate(self):
-            self.eventHandler.validate()
-            self.goto('idle')
-
         def onPress(self, x, y, btn):
-            if btn == LEFT_BTN:
-                self.focusBtns.add(btn)
-                self.eventHandler.handleEvent('press', x, y, btn)
-
-        def onMove(self, x, y):
-            self.eventHandler.handleEvent('move', x, y)
+            self.focusBtns.add(btn)
+            self.eventHandler.handleEvent('press', x, y, btn)
 
         def onRelease(self, x, y, btn):
-            if btn == LEFT_BTN:
-                self.focusBtns.discard(btn)
-                requestFocus = self.eventHandler.handleEvent('release', x, y, btn)
-                if len(self.focusBtns) == 0 and not requestFocus:
+            self.focusBtns.discard(btn)
+            requestFocus = self.eventHandler.handleEvent('release', x, y, btn)
+            if self.button == btn:
+                if not requestFocus:
+                    self.machine.focusHandlers.remove(self.eventHandler)
+
+                if len(self.focusBtns) == 0:
                     self.goto('idle')
+                else:
+                    self.goto('pressed', self.focusBtns)
+
+        def _processEvent(self, *args):
+            # Forward event to focus handlers from latest to oldest
+            for eventHandler in reversed(self.machine.focusHandlers):
+                if eventHandler.handleEvent(*args):
+                    break  # Event was consumed by handler
+
+        def validate(self):
+            for eventHandler in reversed(self.machine.focusHandlers):
+                eventHandler.validate()
+            self.machine.focusHandlers = []
+            self.goto('idle')
+
+        def onMove(self, x, y):
+            self._processEvent('move', x, y)
 
         def onWheel(self, x, y, angleInDegrees):
-            self.eventHandler.handleEvent('wheel', x, y, angleInDegrees)
+            self._processEvent('wheel', x, y, angleInDegrees)
+
+    class Pressed(State):
+        """Wait for all buttons to be released"""
+        def enterState(self, btns):
+            self.focusBtns = btns
+
+        def onPress(self, x, y, btn):
+            self.focusBtns.add(btn)
+
+        def onRelease(self, x, y, btn):
+            self.focusBtns.discard(btn)
+            if len(self.focusBtns) == 0:
+                self.goto('idle')
+
+        def _processEvent(self, *args):
+            # Forward event to focus handlers from latest to oldest
+            for eventHandler in reversed(self.machine.focusHandlers):
+                if eventHandler.handleEvent(*args):
+                    break  # Event was consumed by handler
+
+        def validate(self):
+            for eventHandler in reversed(self.machine.focusHandlers):
+                eventHandler.validate()
+            self.machine.focusHandlers = []
+            self.goto('idle')
+
+        def onMove(self, x, y):
+            self._processEvent('move', x, y)
+
+        def onWheel(self, x, y, angleInDegrees):
+            self._processEvent('wheel', x, y, angleInDegrees)
 
     def __init__(self, eventHandlers=()):
         self.eventHandlers = list(eventHandlers)
+        self.focusHandlers = []
 
         states = {
             'idle': FocusManager.Idle,
-            'focus': FocusManager.Focus
+            'focus': FocusManager.Focus,
+            'pressed': FocusManager.Pressed
         }
         super(FocusManager, self).__init__(states, 'idle')
 
