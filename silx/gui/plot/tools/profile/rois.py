@@ -33,7 +33,7 @@
 
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
-__date__ = "27/11/2020"
+__date__ = "01/12/2020"
 
 import numpy
 import weakref
