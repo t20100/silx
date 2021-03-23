@@ -123,14 +123,3 @@ class TestImageView(TestCaseQt):
         cmap = Colormap()
         self.plot.setColormap(cmap)
         self.assertIs(self.plot.getColormap(), cmap)
-
-
-def suite():
-    test_suite = unittest.TestSuite()
-    test_suite.addTest(
-        unittest.defaultTestLoader.loadTestsFromTestCase(TestImageView))
-    return test_suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

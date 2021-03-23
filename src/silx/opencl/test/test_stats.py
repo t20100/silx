@@ -102,13 +102,3 @@ class TestStatistics(unittest.TestCase):
                     logger.error("Faulty results: %s", res)
                     self.assertTrue(False, "Stat calculation failed on %s %s" % (platform, device))
                 logger.info("Runtime on %s/%s : %.3fms x%.1f", platform, device, 1000 * (t1 - t0), self.ref_time / (t1 - t0))
-
-
-def suite():
-    testSuite = unittest.TestSuite()
-    testSuite.addTest(TestStatistics("test_measurement"))
-    return testSuite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest="suite")
