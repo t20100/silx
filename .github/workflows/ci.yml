@@ -26,16 +26,19 @@ jobs:
             python-version: 3.6
             BUILD_COMMAND: sdist
             QT_BINDING: PyQt5
+            PYTEST_ARGS: --no-opengl
           - name-suffix: "PySide2 wheel"
             os: macos-latest
             python-version: 3.8
             BUILD_COMMAND: bdist_wheel
             QT_BINDING: PySide2
+            PYTEST_ARGS:
           - name-suffix: "No GUI wheel"
             os: windows-latest
             python-version: 3.9
             BUILD_COMMAND: bdist_wheel
             QT_BINDING:
+            PYTEST_ARGS: --no-gui
             # No GUI tests on Windows
 
     # Steps represent a sequence of tasks that will be executed as part of the job
@@ -122,7 +125,7 @@ jobs:
           fi
           echo "QT_BINDING="${{ matrix.QT_BINDING }}
           if [ -n "${{ matrix.QT_BINDING }}" ]; then
-            python run_tests.py --installed -v --qt-binding=${{ matrix.QT_BINDING }};
+            python run_tests.py --installed -v --qt-binding=${{ matrix.QT_BINDING }} ${{ matrix.PYTEST_ARGS }};
           else
-            python run_tests.py --installed -v --no-gui;
+            python run_tests.py --installed -v ${{ matrix.PYTEST_ARGS }};
           fi
