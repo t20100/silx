@@ -159,8 +159,8 @@ class TestCaseQt(unittest.TestCase):
                        _inspect.createdByPython(widget))]
         del self.__previousWidgets
 
-        if qt.BINDING == 'PySide2':
-            return  # Do not test for leaking widgets with PySide2
+        if qt.BINDING in ('PySide2', 'PySide6'):
+            return  # Do not test for leaking widgets with PySide2 and PySide6
 
         allowedLeakingWidgets = self.allowedLeakingWidgets
         self.allowedLeakingWidgets = 0
