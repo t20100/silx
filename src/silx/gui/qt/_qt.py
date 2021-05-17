@@ -146,9 +146,6 @@ elif BINDING == 'PySide2':
     else:
         HAS_SVG = True
 
-    # Import loadUi wrapper for PySide2
-    from ._pyside_dynamic import loadUi  # noqa
-
     pyqtSignal = Signal
 
 elif BINDING == 'PySide6':
@@ -177,9 +174,6 @@ elif BINDING == 'PySide6':
         HAS_SVG = False
     else:
         HAS_SVG = True
-
-    # Import loadUi wrapper for PySide6
-    from ._pyside_dynamic import loadUi  # noqa
 
     pyqtSignal = Signal
 else:
