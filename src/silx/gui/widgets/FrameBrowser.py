@@ -1,7 +1,7 @@
 # coding: utf-8
 # /*##########################################################################
 #
-# Copyright (c) 2016-2018 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -260,8 +260,14 @@ class HorizontalSliderWithBrowser(qt.QAbstractSlider):
         self.mainLayout.addWidget(self._slider, 1)
         self.mainLayout.addWidget(self._browser)
 
-        self._slider.valueChanged[int].connect(self._sliderSlot)
-        self._browser.sigIndexChanged.connect(self._browserSlot)
+        self._slider.valueChanged[int].connect(self.setValue)
+        self._browser.sigIndexChanged.connect(self._browserValueChanged)
+
+        self.rangeChanged.connect(self._slider.setRange)
+        self.valueChanged[int].connect(self._slider.setValue)
+
+        self.rangeChanged.connect(self._browser.setRange)
+        self.valueChanged[int].connect(self._browser.setValue)
 
     def lineEdit(self):
         """Returns the line edit provided by this widget.
@@ -277,48 +283,5 @@ class HorizontalSliderWithBrowser(qt.QAbstractSlider):
         """
         return self._browser.limitWidget()
 
-    def setMinimum(self, value):
-        """Set minimum value
-
-        :param int value: Minimum value"""
-        self._slider.setMinimum(value)
-        maximum = self._slider.maximum()
-        self._browser.setRange(value, maximum)
-
-    def setMaximum(self, value):
-        """Set maximum value
-
-        :param int value: Maximum value
-        """
-        self._slider.setMaximum(value)
-        minimum = self._slider.minimum()
-        self._browser.setRange(minimum, value)
-
-    def setRange(self, first, last):
-        """Set minimum/maximum values
-
-        :param int first: Minimum value
-        :param int last: Maximum value"""
-        self._slider.setRange(first, last)
-        self._browser.setRange(first, last)
-
-    def _sliderSlot(self, value):
-        """Emit selected value when slider is activated
-        """
-        self._browser.setValue(value)
-        self.valueChanged.emit(value)
-
-    def _browserSlot(self, ddict):
-        """Emit selected value when browser state is changed"""
-        self._slider.setValue(ddict['new'])
-
-    def setValue(self, value):
-        """Set value
-
-        :param int value: value"""
-        self._slider.setValue(value)
-        self._browser.setValue(value)
-
-    def value(self):
-        """Get selected value"""
-        return self._slider.value()
+    def _browserValueChanged(self, ddict):
+        self.setValue(ddict["new"])
