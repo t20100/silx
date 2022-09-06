@@ -23,176 +23,97 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Build man pages of the provided entry points"""
+"""Build man pages of the project's entry points"""
 
 import logging
-import os
 from pathlib import Path
-import stat
 import subprocess
 import sys
 import sysconfig
-import tempfile
 from typing import Iterator, Tuple
 
 import pkg_resources
 
 
-logging.basicConfig()
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-PROJECT = 'silx'
+PROJECT = "silx"
+
+
+def get_synopsis(module_name: str) -> str:
+    """Execute Python commands to retrieve the synopsis for help2man"""
+    commands = (
+        "import sys",
+        f"sys.path = {sys.path}",  # To use the patched sys.path
+        "import logging",
+        "logging.basicConfig(level=logging.ERROR)",
+        f"import {module_name}",
+        f"print({module_name}.__doc__)",
+    )
+    result = subprocess.run(
+        [sys.executable, "-c", "; ".join(commands)],
+        capture_output=True,
+    )
+    if result.returncode:
+        logger.warning("Error while getting synopsis for module '%s'.", module_name)
+        return None
+    synopsis = result.stdout.decode("utf-8").strip()
+    if synopsis == "None":
+        return None
+    return synopsis
 
 
 def entry_points(name: str) -> Iterator[Tuple[str, str, str]]:
-    """Iterate over entry points available on the project `name`"""
-    for group in ('console_scripts', 'gui_scripts'):
+    for group in ("console_scripts", "gui_scripts"):
         for entry_point in pkg_resources.iter_entry_points(group, name):
             yield entry_point.name, entry_point.module_name, entry_point.attrs[0]
 
 
-def _write_script(target_name, lst_lines):
-    """Write a script to a temporary file and return its name
-
-    :param target_name: base of the script name
-    :param lst_lines: list of lines to be written in the script
-    :return: the actual filename of the script (for execution or removal)
-    """
-    script_fid, script_name = tempfile.mkstemp(prefix="%s_" % target_name, text=True)
-    with os.fdopen(script_fid, "wt") as script:
-        for line in lst_lines:
-            if not line.endswith("\n"):
-                line += "\n"
-            script.write(line)
-    # make it executable
-    mode = os.stat(script_name).st_mode
-    os.chmod(script_name, mode + stat.S_IEXEC)
-    return script_name
-
-
-def get_synopsis(module_name, env):
-    """Execute a script to retrieve the synopsis for help2man
-
-    :return: synopsis
-    :rtype: single line string
-    """
-    script_name = None
-    synopsis = None
-    script = [
-        "#!%s\n" % sys.executable,
-        "import logging",
-        "logging.basicConfig(level=logging.ERROR)",
-        "import %s as app" % module_name,
-        "print(app.__doc__)",
-    ]
-    try:
-        script_name = _write_script(module_name, script)
-        command_line = [sys.executable, script_name]
-        p = subprocess.Popen(command_line, env=env, stdout=subprocess.PIPE)
-        status = p.wait()
-        if status != 0:
-            logger.warning("Error while getting synopsis for module '%s'.", module_name)
-        synopsis = p.stdout.read().decode("utf-8").strip()
-        if synopsis == "None":
-            synopsis = None
-    finally:
-        # clean up the script
-        if script_name is not None:
-            os.remove(script_name)
-    return synopsis
-
-
-def run_targeted_script(target_name, script_name, env, log_output=False):
-    """Execute targeted script using --help and --version to help checking errors.
-
-    help2man is not very helpful to do it for us.
-
-    :return: True is both return code are equal to 0
-    :rtype: bool
-    """
-    if log_output:
-        extra_args = {}
-    else:
-        extra_args = {"stdout": subprocess.DEVNULL, "stderr": subprocess.DEVNULL}
-
-    succeeded = True
-    command_line = [sys.executable, script_name, "--help"]
-    if log_output:
-        logger.info("See the following execution of: %s", " ".join(command_line))
-    p = subprocess.Popen(command_line, env=env, **extra_args)
-    status = p.wait()
-    if log_output:
-        logger.info("Return code: %s", status)
-    succeeded = succeeded and status == 0
-    command_line = [sys.executable, script_name, "--version"]
-    if log_output:
-        logger.info("See the following execution of: %s", " ".join(command_line))
-    p = subprocess.Popen(command_line, env=env, **extra_args)
-    status = p.wait()
-    if log_output:
-        logger.info("Return code: %s", status)
-    succeeded = succeeded and status == 0
-    return succeeded
-
-
-def main():
-    build_lib = (
-        Path(__file__).parent
-        / ".."
+def main(name: str, root_path: Path):
+    build_lib_path = (
+        root_path
         / "build"
         / f"lib.{sysconfig.get_platform()}-{sys.version_info[0]}.{sys.version_info[1]}"
     ).resolve()
-    path = sys.path
-    path.insert(0, str(build_lib))
+    sys.path.insert(0, str(build_lib_path))
 
-    env = dict((str(k), str(v)) for k, v in os.environ.items())
-    env["PYTHONPATH"] = os.pathsep.join(path)
-    if not os.path.isdir("build/man"):
-        os.makedirs("build/man")
-    script_name = None
-    workdir = tempfile.mkdtemp()
+    build_man_path = root_path / "build" / "man"
+    build_man_path.mkdir(parents=True, exist_ok=True)
 
-    for target_name, module_name, function_name in entry_points(PROJECT):
-        logger.info("Build man for entry-point target '%s'" % target_name)
-        # help2man expect a single executable file to extract the help
-        # we create it, execute it, and delete it at the end
+    for target_name, module_name, function_name in entry_points(name):
+        logger.info(f"Build man for entry-point target '{target_name}'")
+        commands = (
+            "import sys",
+            f"sys.path = {sys.path}",  # To use the patched sys.path
+            f"import {module_name}",
+            f"{module_name}.{function_name}()",
+        )
+        python_command = [sys.executable, "-c", f'"{"; ".join(commands)}"']
 
-        try:
-            # create a launcher using the right python interpreter
-            script_name = os.path.join(workdir, target_name)
-            with open(script_name, "wt") as script:
-                script.write("#!%s\n" % sys.executable)
-                script.write("import %s as app\n" % module_name)
-                script.write("app.%s()\n" % function_name)
-            # make it executable
-            mode = os.stat(script_name).st_mode
-            os.chmod(script_name, mode + stat.S_IEXEC)
+        help2man_command = [
+            "help2man",
+            "-N",
+            " ".join(python_command),
+            "-o",
+            str(build_man_path / f"{target_name}.1"),
+        ]
 
-            # execute help2man
-            man_file = "build/man/%s.1" % target_name
-            command_line = ["help2man", "-N", script_name, "-o", man_file]
+        synopsis = get_synopsis(module_name)
+        if synopsis:
+            help2man_command += ["-n", synopsis]
 
-            synopsis = get_synopsis(module_name, env)
-            if synopsis:
-                command_line += ["-n", synopsis]
-
-            p = subprocess.Popen(command_line, env=env)
-            status = p.wait()
-            if status != 0:
-                logger.info(
-                    "Error while generating man file for target '%s'.", target_name
-                )
-                run_targeted_script(target_name, script_name, env, True)
-                raise RuntimeError(
-                    "Fail to generate '%s' man documentation" % target_name
-                )
-        finally:
-            # clean up the script
-            if script_name is not None:
-                os.remove(script_name)
-    os.rmdir(workdir)
+        result = subprocess.run(help2man_command)
+        if result.returncode != 0:
+            logger.error(f"Error while generating man file for target '{target_name}'.")
+            for argument in ("--help", "--version"):
+                test_command = python_command + [argument]
+                logger.info(f"Running: {test_command}")
+                result = subprocess.run(test_command)
+                logger.info(f"\tReturn code: {result.returncode}")
+            raise RuntimeError(f"Fail to generate '{target_name}' man documentation")
 
 
 if __name__ == "__main__":
-    main()
+    main(PROJECT, Path(__file__).parent / "..")
