@@ -6,6 +6,7 @@ include MANIFEST.in
 include run_tests.py
 include stdeb.cfg
 include build-deb.sh
+include build_man_page.py
 include requirements.txt
 include requirements-dev.txt
 include pyproject.toml
