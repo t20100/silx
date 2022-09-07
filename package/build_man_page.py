@@ -23,13 +23,15 @@
 # THE SOFTWARE.
 #
 # ###########################################################################*/
-"""Build man pages of the project's entry points"""
+"""Build man pages of the project's entry points
+
+The project's package MUST be installed in the current Python environment.
+"""
 
 import logging
 from pathlib import Path
 import subprocess
 import sys
-import sysconfig
 from typing import Iterator, Tuple
 
 import pkg_resources
@@ -45,8 +47,6 @@ PROJECT = "silx"
 def get_synopsis(module_name: str) -> str:
     """Execute Python commands to retrieve the synopsis for help2man"""
     commands = (
-        "import sys",
-        f"sys.path = {sys.path}",  # To use the patched sys.path
         "import logging",
         "logging.basicConfig(level=logging.ERROR)",
         f"import {module_name}",
@@ -71,33 +71,27 @@ def entry_points(name: str) -> Iterator[Tuple[str, str, str]]:
             yield entry_point.name, entry_point.module_name, entry_point.attrs[0]
 
 
-def main(name: str, root_path: Path):
-    build_lib_path = (
-        root_path
-        / "build"
-        / f"lib.{sysconfig.get_platform()}-{sys.version_info[0]}.{sys.version_info[1]}"
-    ).resolve()
-    sys.path.insert(0, str(build_lib_path))
+def main(name: str, out_path: Path):
+    out_path.mkdir(parents=True, exist_ok=True)
 
-    build_man_path = root_path / "build" / "man"
-    build_man_path.mkdir(parents=True, exist_ok=True)
+    eps = tuple(entry_points(name))
+    if not eps:
+        raise RuntimeError("No entry points found!")
 
-    for target_name, module_name, function_name in entry_points(name):
+    for target_name, module_name, function_name in eps:
         logger.info(f"Build man for entry-point target '{target_name}'")
-        commands = (
-            "import sys",
-            f"sys.path = {sys.path}",  # To use the patched sys.path
-            f"import {module_name}",
-            f"{module_name}.{function_name}()",
-        )
-        python_command = [sys.executable, "-c", f'"{"; ".join(commands)}"']
+        python_command = [
+            sys.executable,
+            "-c",
+            f'"import {module_name}; {module_name}.{function_name}()"',
+        ]
 
         help2man_command = [
             "help2man",
             "-N",
             " ".join(python_command),
             "-o",
-            str(build_man_path / f"{target_name}.1"),
+            str(out_path / f"{target_name}.1"),
         ]
 
         synopsis = get_synopsis(module_name)
@@ -116,4 +110,5 @@ def main(name: str, root_path: Path):
 
 
 if __name__ == "__main__":
-    main(PROJECT, Path(__file__).parent / "..")
+    root_path = Path(__file__).parent / ".."
+    main(PROJECT, out_path=root_path / "build" / "man")
