@@ -110,5 +110,4 @@ def main(name: str, out_path: Path):
 
 
 if __name__ == "__main__":
-    root_path = Path(__file__).parent / ".."
-    main(PROJECT, out_path=root_path / "build" / "man")
+    main(PROJECT, out_path=Path(__file__).parent / "build" / "man")
