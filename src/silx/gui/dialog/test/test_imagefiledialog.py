@@ -223,7 +223,9 @@ class TestImageFileDialogInteraction(testutils.TestCaseQt, _UtilsMixin):
         # rect = sidebar.visualRect(index)
         # self.mouseClick(sidebar, qt.Qt.LeftButton, pos=rect.center())
         # Using mouse click is not working, let's use the selection API
-        sidebar.selectionModel().select(index, qt.QItemSelectionModel.ClearAndSelect)
+        selectionModel = sidebar.selectionModel()
+        selection = qt.QItemSelection(index, index)
+        selectionModel.select(selection, qt.QItemSelectionModel.Select)
         self.qWaitForPendingActions(dialog)
 
         index = browser.rootIndex()
