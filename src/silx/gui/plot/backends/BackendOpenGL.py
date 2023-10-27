@@ -90,9 +90,6 @@ class _MarkerItem(dict):
                  symbol, linestyle, linewidth, constraint, yaxis, font):
         super(_MarkerItem, self).__init__()
 
-        if symbol is None:
-            symbol = '+'
-
         # Apply constraint to provided position
         isConstraint = (constraint is not None and
                         x is not None and y is not None)
@@ -623,17 +620,18 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                         )
                         labels.append(label)
 
-                    # For now simple implementation: using a curve for each marker
-                    # Should pack all markers to a single set of points
-                    marker = glutils.Points2D(
-                        (pixelPos[0],),
-                        (pixelPos[1],),
-                        marker=item['symbol'],
-                        color=item['color'],
-                        size=11,
-                    )
-                    context.matrix = self.matScreenProj
-                    marker.render(context)
+                    if item['symbol'] is not None:
+                        # For now simple implementation: using a curve for each marker
+                        # Should pack all markers to a single set of points
+                        marker = glutils.Points2D(
+                            (pixelPos[0],),
+                            (pixelPos[1],),
+                            marker=item['symbol'],
+                            color=item['color'],
+                            size=11,
+                        )
+                        context.matrix = self.matScreenProj
+                        marker.render(context)
 
             else:
                 _logger.error('Unsupported item: %s', str(item))
