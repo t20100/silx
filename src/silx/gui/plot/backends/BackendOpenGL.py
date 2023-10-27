@@ -110,6 +110,18 @@ class _MarkerItem(dict):
         })
 
 
+class _TexItem(dict):
+    def __init__(self, x, y, text, color, yaxis, font):
+        super(_TexItem, self).__init__(
+            x=x,
+            y=y,
+            text=text,
+            color=colors.rgba(color),
+            yaxis=yaxis,
+            font=font,
+        )
+
+
 # shaders #####################################################################
 
 _baseVertShd = """
@@ -633,6 +645,32 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
                         context.matrix = self.matScreenProj
                         marker.render(context)
 
+            elif isinstance(item, _TexItem):
+                gl.glViewport(0, 0, self._plotFrame.size[0], self._plotFrame.size[1])
+
+                xCoord, yCoord, yAxis = item['x'], item['y'], item['yaxis']
+
+                if ((isXLog and item['x'] is not None and item['x'] <= 0) or
+                        (isYLog and item['y'] is not None and item['y'] <= 0)):
+                    # Do not render text with negative coords on log axis
+                    continue
+
+                color = item['color']
+                intensity = color[0] * 0.299 + color[1] * 0.587 + color[2] * 0.114
+                bgColor = (1., 1., 1., 0.75) if intensity <= 0.5 else (0., 0., 0., 0.75)
+
+                x, y = self._plotFrame.dataToPixel(
+                    item['x'], item['y'], axis=item['yaxis'])
+                label = glutils.Text2D(
+                    item['text'], item['font'], x, y,
+                    color=item['color'],
+                    bgColor=bgColor,
+                    align=glutils.LEFT,
+                    valign=glutils.TOP,
+                    devicePixelRatio=self.getDevicePixelRatio(),
+                )
+                labels.append(label)
+
             else:
                 _logger.error('Unsupported item: %s', str(item))
                 continue
@@ -987,6 +1025,24 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
         return _MarkerItem(x, y, text, color,
                            symbol, linestyle, linewidth, constraint, yaxis, font)
 
+    def addText(
+        self,
+        x: float,
+        y: float,
+        text: str,
+        color: str,
+        yaxis: str,
+        font: qt.QFont,
+    ) -> object:
+        return _TexItem(
+            x=x,
+            y=y,
+            text=text,
+            color=color,
+            yaxis=yaxis,
+            font=qt.QApplication.instance().font() if font is None else font,
+        )
+
     # Remove methods
 
     def remove(self, item):
@@ -1001,7 +1057,7 @@ class BackendOpenGL(BackendBase.BackendBase, glu.OpenGLWidget):
             if item.isInitialized():
                 self._glGarbageCollector.append(item)
 
-        elif isinstance(item, (_MarkerItem, _ShapeItem)):
+        elif isinstance(item, (_MarkerItem, _ShapeItem, _TexItem)):
             pass  # No-op
 
         else:

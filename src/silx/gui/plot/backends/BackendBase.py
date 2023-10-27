@@ -248,6 +248,27 @@ class BackendBase(object):
         """
         return object()
 
+    def addText(
+        self,
+        x: float,
+        y: float,
+        text: str,
+        color: str,
+        yaxis: str,
+        font: qt.QFont,
+    ) -> object:
+        """Add a text to the plot.
+
+        :param x: Horizontal position of the text anchor in graph coordinates.
+        :param y: Vertical position of the text anchor in graph coordinates.
+        :param text: Text to display
+        :param color: Color to be used for instance 'blue', 'b', '#FF0000'
+        :param yaxis: The Y axis this marker belongs to in: 'left', 'right'
+        :param font: QFont to use to render text
+        :return: Handle used by the backend to univocally access the marker
+        """
+        return object()
+
     # Remove methods
 
     def remove(self, item):

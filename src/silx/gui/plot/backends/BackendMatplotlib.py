@@ -944,6 +944,31 @@ class BackendMatplotlib(BackendBase.BackendBase):
                 else:
                     item.updateMarkerText(xmin, xmax, ymin2, ymax2, yinverted)
 
+    def addText(
+        self,
+        x: float,
+        y: float,
+        text: str,
+        color: str,
+        yaxis: str,
+        font: qt.QFont,
+    ) -> object:
+        artist = Text(
+            x,
+            y,
+            text,
+            color=color,
+            horizontalalignment='left',
+            verticalalignment='top',
+            fontproperties=None if font is None else qFontToFontProperties(font),
+        )
+        artist.set_animated(True)
+        if yaxis == 'right':
+            self.ax2.add_artist(artist)
+        else:
+            self.ax.add_artist(artist)
+        return artist
+
     # Remove methods
 
     def remove(self, item):
