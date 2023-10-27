@@ -35,7 +35,7 @@ from .core import (Item, DataItem,  # noqa
                    LabelsMixIn, DraggableMixIn, ColormapMixIn,  # noqa
                    SymbolMixIn, ColorMixIn, YAxisMixIn, FillMixIn,  # noqa
                    AlphaMixIn, LineMixIn, ScatterVisualizationMixIn,  # noqa
-                   ComplexMixIn, ItemChangedType, PointsBase)  # noqa
+                   ComplexMixIn, TextMixIn, ItemChangedType, PointsBase)  # noqa
 from .complex import ImageComplexData  # noqa
 from .curve import Curve, CurveStyle  # noqa
 from .histogram import Histogram  # noqa

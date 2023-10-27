@@ -24,6 +24,8 @@
 """This module provides the base class for items of the :class:`Plot`.
 """
 
+from __future__ import annotations
+
 __authors__ = ["T. Vincent"]
 __license__ = "MIT"
 __date__ = "08/12/2020"
@@ -1751,3 +1753,42 @@ class HighlightedMixIn(ItemMixInBase):
             # Backward compatibility event
             if previous.getColor() != style.getColor():
                 self._updated(ItemChangedType.HIGHLIGHTED_COLOR)
+
+
+class TextMixIn(ItemMixInBase):
+    """Mix-in class for item with text"""
+
+    def __init__(self):
+        self.__text = ''
+        self.__font = None
+
+    def getText(self) -> str:
+        """Returns displayed text"""
+        return self.__text
+
+    def setText(self, text: str):
+        """Set the text to display"""
+        text = str(text)
+        if text != self.__text:
+            self.__text = text
+            self._updated(ItemChangedType.TEXT)
+
+    def getFont(self, copy: bool = True) -> qt.QFont | None:
+        """Returns a copy of the QFont used to render text.
+
+        To modify the text font, use :meth:`setFont`.
+
+        :param copy: False to get internal QFont, do not modify!
+        """
+        if not copy or self.__font is None:
+            return self.__font
+        return qt.QFont(self.__font)
+
+    def setFont(self, font: qt.QFont | None):
+        """Set the QFont used to render text, use None for default.
+
+        A copy is stored, so further modification of the provided font are not taken into account.
+        """
+        if font != self.__font:
+            self.__font = None if font is None else qt.QFont(font)
+            self._updated(ItemChangedType.FONT)
