@@ -357,6 +357,7 @@ class _MarkerContainer(_PickableContainer):
             visible = ((self.x is None or xmin <= self.x <= xmax) and
                        (self.y is None or ymin <= self.y <= ymax))
             self.text.set_visible(visible)
+            self.line.set_visible(visible)
 
             if self.x is not None and self.y is not None:
                 if self.symbol is None:
