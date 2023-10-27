@@ -34,14 +34,14 @@ import logging
 
 from ....utils.proxy import docstring
 from .core import (Item, DraggableMixIn, ColorMixIn, LineMixIn, SymbolMixIn,
-                   ItemChangedType, YAxisMixIn)
+                   ItemChangedType, TextMixIn, YAxisMixIn)
 from silx import config
 from silx.gui import qt
 
 _logger = logging.getLogger(__name__)
 
 
-class MarkerBase(Item, DraggableMixIn, ColorMixIn, YAxisMixIn):
+class MarkerBase(Item, DraggableMixIn, ColorMixIn, TextMixIn, YAxisMixIn):
     """Base class for markers"""
 
     sigDragStarted = qt.Signal()
@@ -56,14 +56,15 @@ class MarkerBase(Item, DraggableMixIn, ColorMixIn, YAxisMixIn):
         Item.__init__(self)
         DraggableMixIn.__init__(self)
         ColorMixIn.__init__(self)
+        TextMixIn.__init__(self)
         YAxisMixIn.__init__(self)
 
-        self._text = ''
-        self._font = None
         if config.DEFAULT_PLOT_MARKER_TEXT_FONT_SIZE is not None:
-            self._font = qt.QFont(
-                qt.QApplication.instance().font().family(),
-                config.DEFAULT_PLOT_MARKER_TEXT_FONT_SIZE,
+            self.setFont(
+                qt.QFont(
+                    qt.QApplication.instance().font().family(),
+                    config.DEFAULT_PLOT_MARKER_TEXT_FONT_SIZE,
+                )
             )
 
         self._x = None
@@ -84,7 +85,7 @@ class MarkerBase(Item, DraggableMixIn, ColorMixIn, YAxisMixIn):
             linewidth=linewidth,
             constraint=self.getConstraint(),
             yaxis=self.getYAxis(),
-            font=self._font,  # Do not use getFont to spare creating a new QFont
+            font=self.getFont(copy=False),
         )
 
     def _addBackendRenderer(self, backend):
@@ -101,39 +102,6 @@ class MarkerBase(Item, DraggableMixIn, ColorMixIn, YAxisMixIn):
         :rtype: bool
         """
         return True
-
-    def getText(self):
-        """Returns marker text.
-
-        :rtype: str
-        """
-        return self._text
-
-    def setText(self, text):
-        """Set the text of the marker.
-
-        :param str text: The text to use
-        """
-        text = str(text)
-        if text != self._text:
-            self._text = text
-            self._updated(ItemChangedType.TEXT)
-
-    def getFont(self) -> qt.QFont | None:
-        """Returns a copy of the QFont used to render text.
-
-        To modify the text font, use :meth:`setFont`.
-        """
-        return None if self._font is None else qt.QFont(self._font)
-
-    def setFont(self, font: qt.QFont | None):
-        """Set the QFont used to render text, use None for default.
-
-        A copy is stored, so further modification of the provided font are not taken into account.
-        """
-        if font != self._font:
-            self._font = None if font is None else qt.QFont(font)
-            self._updated(ItemChangedType.FONT)
 
     def getXPosition(self):
         """Returns the X position of the marker line in data coordinates
