@@ -44,6 +44,7 @@ from .image_aggregated import ImageDataAggregated  # noqa
 from .shape import Line, Shape, BoundingRect, XAxisExtent, YAxisExtent  # noqa
 from .scatter import Scatter  # noqa
 from .marker import MarkerBase, Marker, XMarker, YMarker  # noqa
+from .text import Text # noqa
 from .axis import Axis, XAxis, YAxis, YRightAxis
 
 DATA_ITEMS = (ImageComplexData, Curve, Histogram, ImageBase, Scatter,
