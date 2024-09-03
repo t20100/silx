@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2024 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -28,12 +28,7 @@ __license__ = "MIT"
 __date__ = "05/12/2016"
 
 
-import os.path
-import unittest
 import pytest
-
-from silx.test.utils import temp_dir
-from silx.gui.utils.testutils import TestCaseQt
 
 from silx.gui import qt
 
@@ -43,151 +38,137 @@ except ImportError:
     qt_inspect = None
 
 
-class TestQtWrapper(unittest.TestCase):
-    """Minimalistic test to check that Qt has been loaded."""
-
-    def testQObject(self):
-        """Test that QObject is there."""
-        obj = qt.QObject()
-        self.assertTrue(obj is not None)
+def testQObject():
+    """Test that QObject is there: check that Qt has been loaded."""
+    obj = qt.QObject()
+    assert obj is not None
 
 
-class TestLoadUi(TestCaseQt):
-    """Test loadUi function"""
-
-    TEST_UI = """<?xml version="1.0" encoding="UTF-8"?>
-    <ui version="4.0">
-     <class>MainWindow</class>
-     <widget class="QMainWindow" name="MainWindow">
-      <property name="geometry">
-       <rect>
+TEST_UI = """<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+    <class>MainWindow</class>
+    <widget class="QMainWindow" name="MainWindow">
+    <property name="geometry">
+    <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>293</width>
+    <height>296</height>
+    </rect>
+    </property>
+    <property name="windowTitle">
+    <string>Test loadUi</string>
+    </property>
+    <widget class="QWidget" name="centralwidget">
+    <widget class="QPushButton" name="pushButton">
+    <property name="geometry">
+        <rect>
+        <x>10</x>
+        <y>10</y>
+        <width>89</width>
+        <height>27</height>
+        </rect>
+    </property>
+    <property name="text">
+        <string>Button 1</string>
+    </property>
+    </widget>
+    <widget class="QPushButton" name="pushButton_2">
+    <property name="geometry">
+        <rect>
+        <x>10</x>
+        <y>50</y>
+        <width>89</width>
+        <height>27</height>
+        </rect>
+    </property>
+    <property name="text">
+        <string>Button 2</string>
+    </property>
+    </widget>
+    <widget class="Line" name="line">
+    <property name="geometry">
+        <rect>
+        <x>10</x>
+        <y>90</y>
+        <width>118</width>
+        <height>3</height>
+        </rect>
+    </property>
+    <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+    </property>
+    </widget>
+    <widget class="Line" name="line_2">
+    <property name="geometry">
+        <rect>
+        <x>150</x>
+        <y>20</y>
+        <width>3</width>
+        <height>61</height>
+        </rect>
+    </property>
+    <property name="orientation">
+        <enum>Qt::Vertical</enum>
+    </property>
+    </widget>
+    </widget>
+    <widget class="QMenuBar" name="menubar">
+    <property name="geometry">
+    <rect>
         <x>0</x>
         <y>0</y>
         <width>293</width>
-        <height>296</height>
-       </rect>
-      </property>
-      <property name="windowTitle">
-       <string>Test loadUi</string>
-      </property>
-      <widget class="QWidget" name="centralwidget">
-       <widget class="QPushButton" name="pushButton">
-        <property name="geometry">
-         <rect>
-          <x>10</x>
-          <y>10</y>
-          <width>89</width>
-          <height>27</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>Button 1</string>
-        </property>
-       </widget>
-       <widget class="QPushButton" name="pushButton_2">
-        <property name="geometry">
-         <rect>
-          <x>10</x>
-          <y>50</y>
-          <width>89</width>
-          <height>27</height>
-         </rect>
-        </property>
-        <property name="text">
-         <string>Button 2</string>
-        </property>
-       </widget>
-       <widget class="Line" name="line">
-        <property name="geometry">
-         <rect>
-          <x>10</x>
-          <y>90</y>
-          <width>118</width>
-          <height>3</height>
-         </rect>
-        </property>
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-       </widget>
-       <widget class="Line" name="line_2">
-        <property name="geometry">
-         <rect>
-          <x>150</x>
-          <y>20</y>
-          <width>3</width>
-          <height>61</height>
-         </rect>
-        </property>
-        <property name="orientation">
-         <enum>Qt::Vertical</enum>
-        </property>
-       </widget>
-      </widget>
-      <widget class="QMenuBar" name="menubar">
-       <property name="geometry">
-        <rect>
-         <x>0</x>
-         <y>0</y>
-         <width>293</width>
-         <height>25</height>
-        </rect>
-       </property>
-      </widget>
-      <widget class="QStatusBar" name="statusbar"/>
-     </widget>
-     <resources/>
-     <connections/>
-    </ui>
-    """
-
-    def testLoadUi(self):
-        """Create a QMainWindow from an ui file"""
-        with temp_dir() as tmp:
-            uifile = os.path.join(tmp, "test.ui")
-
-            # write file
-            with open(uifile, mode="w") as f:
-                f.write(self.TEST_UI)
-
-            class TestMainWindow(qt.QMainWindow):
-                def __init__(self, parent=None):
-                    super(TestMainWindow, self).__init__(parent)
-                    qt.loadUi(uifile, self)
-
-            testMainWindow = TestMainWindow()
-            testMainWindow.show()
-            self.qWaitForWindowExposed(testMainWindow)
-
-            testMainWindow.setAttribute(qt.Qt.WA_DeleteOnClose)
-            testMainWindow.close()
+        <height>25</height>
+    </rect>
+    </property>
+    </widget>
+    <widget class="QStatusBar" name="statusbar"/>
+    </widget>
+    <resources/>
+    <connections/>
+</ui>
+"""
 
 
-class TestQtInspect(unittest.TestCase):
+def testLoadUi(tmp_path, qWidgetFactory):
+    """Create a QMainWindow from an ui file"""
+    uifilepath = tmp_path / "test.ui"
+
+    # write file
+    with open(uifilepath, mode="w") as f:
+        f.write(TEST_UI)
+
+    class TestMainWindow(qt.QMainWindow):
+        def __init__(self, parent=None):
+            super(TestMainWindow, self).__init__(parent)
+            qt.loadUi(str(uifilepath), self)
+
+    testMainWindow = qWidgetFactory(TestMainWindow)
+
+
+def testInspectFunctions():
     """Test functions of silx.gui.qt.inspect module"""
+    assert qt_inspect is not None
 
-    def test(self):
-        """Test functions of silx.gui.qt.inspect module"""
-        self.assertIsNotNone(qt_inspect)
+    parent = qt.QObject()
 
-        parent = qt.QObject()
+    assert qt_inspect.isValid(parent)
+    assert qt_inspect.createdByPython(parent)
+    assert qt_inspect.ownedByPython(parent)
 
-        self.assertTrue(qt_inspect.isValid(parent))
-        self.assertTrue(qt_inspect.createdByPython(parent))
-        self.assertTrue(qt_inspect.ownedByPython(parent))
+    obj = qt.QObject(parent)
 
-        obj = qt.QObject(parent)
+    assert qt_inspect.isValid(obj)
+    assert qt_inspect.createdByPython(obj)
+    assert not qt_inspect.ownedByPython(obj)
 
-        self.assertTrue(qt_inspect.isValid(obj))
-        self.assertTrue(qt_inspect.createdByPython(obj))
-        self.assertFalse(qt_inspect.ownedByPython(obj))
-
-        del parent
-        self.assertFalse(qt_inspect.isValid(obj))
+    del parent
+    assert not qt_inspect.isValid(obj)
 
 
 @pytest.mark.skipif(qt.BINDING != "PyQt5", reason="PyQt5 only test")
-def test_exec_():
+def testExec_():
     """Test the exec_ is still useable with Qt5 bindings"""
     klasses = [
         # QtWidgets

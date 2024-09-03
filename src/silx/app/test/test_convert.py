@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2016-2023 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2024 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -28,9 +28,6 @@ __license__ = "MIT"
 __date__ = "17/01/2018"
 
 
-import os
-import tempfile
-import unittest
 import io
 import gc
 import h5py
@@ -85,61 +82,54 @@ sftext = """#F /tmp/sf.dat
 @A 4 3 2
 """
 
+def testConvertHelp():
+    """option -h must cause a `raise SystemExit` or a `return 0`"""
+    try:
+        result = convert.main(["convert", "--help"])
+    except SystemExit as e:
+        result = e.args[0]
+    assert result == 0
 
-class TestConvertCommand(unittest.TestCase):
-    """Test command line parsing"""
 
-    def testHelp(self):
-        # option -h must cause a `raise SystemExit` or a `return 0`
-        try:
-            result = convert.main(["convert", "--help"])
-        except SystemExit as e:
-            result = e.args[0]
-        self.assertEqual(result, 0)
+def testConvertWrongOption():
+    """presence of a wrong option must cause a SystemExit or a return
+    with a non-zero status
+    """
+    try:
+        result = convert.main(["convert", "--foo"])
+    except SystemExit as e:
+        result = e.args[0]
+    assert result != 0
 
-    def testWrongOption(self):
-        # presence of a wrong option must cause a SystemExit or a return
-        # with a non-zero status
-        try:
-            result = convert.main(["convert", "--foo"])
-        except SystemExit as e:
-            result = e.args[0]
-        self.assertNotEqual(result, 0)
 
-    @testutils.validate_logging(convert._logger.name, error=3)
-    # one error log per missing file + one "Aborted" error log
-    def testWrongFiles(self):
-        result = convert.main(["convert", "foo.spec", "bar.edf"])
-        self.assertNotEqual(result, 0)
+@testutils.validate_logging(convert._logger.name, error=3)
+def testWrongFiles():
+    """one error log per missing file + one "Aborted" error log"""
+    result = convert.main(["convert", "foo.spec", "bar.edf"])
+    assert result != 0
 
-    def testFile(self):
-        # create a writable temp directory
-        tempdir = tempfile.mkdtemp()
 
-        # write a temporary SPEC file
-        specname = os.path.join(tempdir, "input.dat")
-        with io.open(specname, "wb") as fd:
-            fd.write(bytes(sftext, "ascii"))
+def testFile(tmp_path):
+    # write a temporary SPEC file
+    specpath = tmp_path / "input.dat"
+    with io.open(specpath, "wb") as fd:
+        fd.write(bytes(sftext, "ascii"))
 
-        # convert it
-        h5name = os.path.join(tempdir, "output.h5")
-        assert not os.path.isfile(h5name)
-        command_list = ["convert", "-m", "w", specname, "-o", h5name]
-        result = convert.main(command_list)
+    # convert it
+    h5path = tmp_path / "output.h5"
+    assert not h5path.is_file()
+    command_list = ["convert", "-m", "w", str(specpath), "-o", h5path]
+    result = convert.main(command_list)
 
-        self.assertEqual(result, 0)
-        self.assertTrue(os.path.isfile(h5name))
+    assert result == 0
+    assert h5path.is_file()
 
-        with h5py.File(h5name, "r") as h5f:
-            title12 = h5py_read_dataset(h5f["/1.2/title"])
-            self.assertEqual(title12, "aaaaaa")
+    with h5py.File(h5path, "r") as h5f:
+        title12 = h5py_read_dataset(h5f["/1.2/title"])
+        assert title12 == "aaaaaa"
 
-            creator = h5f.attrs.get("creator")
-            self.assertIsNotNone(creator, "No creator attribute in NXroot group")
-            self.assertIn("silx convert (v%s)" % silx.version, creator)
+        creator = h5f.attrs.get("creator")
+        assert creator is not None, "No creator attribute in NXroot group"
+        assert f"silx convert (v{silx.version})" in creator
 
-        # delete input file
-        gc.collect()  # necessary to free spec file on Windows
-        os.unlink(specname)
-        os.unlink(h5name)
-        os.rmdir(tempdir)
+    gc.collect()  # necessary to free spec file on Windows

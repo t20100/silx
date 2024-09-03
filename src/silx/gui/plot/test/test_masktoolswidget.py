@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2024 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -28,296 +28,272 @@ __license__ = "MIT"
 __date__ = "17/01/2018"
 
 
-import logging
-import os.path
-
 import numpy
 
 from silx.gui import qt
-from silx.test.utils import temp_dir
-from silx.utils.testutils import ParametricTestCase
 from silx.gui.utils.testutils import getQToolButtonFromAction
 from silx.gui.plot import PlotWindow, MaskToolsWidget
-from .utils import PlotWidgetTestCase
+
+import pytest
 
 
-_logger = logging.getLogger(__name__)
+def _drag(qapp, qapp_utils, plot):
+    """Drag from plot center to offset position"""
+    plotBackendWidget = plot.getWidgetHandle()
+    xCenter, yCenter = plotBackendWidget.width() // 2, plotBackendWidget.height() // 2
+    offset = min(plotBackendWidget.width(), plotBackendWidget.height()) // 10
+
+    pos0 = xCenter, yCenter
+    pos1 = xCenter + offset, yCenter + offset
+
+    qapp_utils.mouseMove(plotBackendWidget, pos=(0, 0))
+    qapp_utils.mouseMove(plotBackendWidget, pos=pos0)
+    qapp.processEvents()
+    qapp_utils.mousePress(plotBackendWidget, qt.Qt.LeftButton, pos=pos0)
+    qapp.processEvents()
+    qapp_utils.mouseMove(plotBackendWidget, pos=(pos0[0] + offset // 2, pos0[1] + offset // 2))
+    qapp_utils.mouseMove(plotBackendWidget, pos=pos1)
+    qapp.processEvents()
+    qapp_utils.mouseRelease(plotBackendWidget, qt.Qt.LeftButton, pos=pos1)
+    qapp.processEvents()
+    qapp_utils.mouseMove(plotBackendWidget, pos=(0, 0))
 
 
-class TestMaskToolsWidget(PlotWidgetTestCase, ParametricTestCase):
-    """Basic test for MaskToolsWidget"""
+def _drawPolygon(qapp, qapp_utils, plot):
+    """Draw a star polygon in the plot"""
+    plotBackendWidget = plot.getWidgetHandle()
+    x, y = plotBackendWidget.width() // 2, plotBackendWidget.height() // 2
+    offset = min(plotBackendWidget.width(), plotBackendWidget.height()) // 10
 
-    def _createPlot(self):
-        return PlotWindow()
+    star = [
+        (x, y + offset),
+        (x - offset, y - offset),
+        (x + offset, y),
+        (x - offset, y),
+        (x + offset, y - offset),
+        (x, y + offset),
+    ]  # Close polygon
 
-    def setUp(self):
-        super(TestMaskToolsWidget, self).setUp()
-        self.widget = MaskToolsWidget.MaskToolsDockWidget(plot=self.plot, name="TEST")
-        self.plot.addDockWidget(qt.Qt.BottomDockWidgetArea, self.widget)
-        self.maskWidget = self.widget.widget()
+    qapp_utils.mouseMove(plotBackendWidget, pos=(0, 0))
+    for pos in star:
+        qapp_utils.mouseMove(plotBackendWidget, pos=pos)
+        qapp.processEvents()
+        qapp_utils.mousePress(plotBackendWidget, qt.Qt.LeftButton, pos=pos)
+        qapp.processEvents()
+        qapp_utils.mouseRelease(plotBackendWidget, qt.Qt.LeftButton, pos=pos)
+        qapp.processEvents()
 
-    def tearDown(self):
-        self.widget.setAttribute(qt.Qt.WA_DeleteOnClose)
-        self.widget.close()
-        del self.maskWidget
-        del self.widget
-        super(TestMaskToolsWidget, self).tearDown()
 
-    def testEmptyPlot(self):
-        """Empty plot, display MaskToolsDockWidget, toggle multiple masks"""
-        self.maskWidget.setMultipleMasks("single")
-        self.qapp.processEvents()
+def _drawPencil(qapp, qapp_utils, plot):
+    """Draw a star polygon in the plot"""
+    plotBackendWidget = plot.getWidgetHandle()
+    x, y = plotBackendWidget.width() // 2, plotBackendWidget.height() // 2
+    offset = min(plotBackendWidget.width(), plotBackendWidget.height()) // 10
 
-        self.maskWidget.setMultipleMasks("exclusive")
-        self.qapp.processEvents()
+    star = [
+        (x, y + offset),
+        (x - offset, y - offset),
+        (x + offset, y),
+        (x - offset, y),
+        (x + offset, y - offset),
+    ]
 
-    def _drag(self):
-        """Drag from plot center to offset position"""
-        plot = self.plot.getWidgetHandle()
-        xCenter, yCenter = plot.width() // 2, plot.height() // 2
-        offset = min(plot.width(), plot.height()) // 10
+    qapp_utils.mouseMove(plotBackendWidget, pos=(0, 0))
+    for start, end in zip(star[:-1], star[1:]):
+        qapp_utils.mouseMove(plotBackendWidget, pos=start)
+        qapp_utils.mousePress(plotBackendWidget, qt.Qt.LeftButton, pos=start)
+        qapp.processEvents()
+        qapp_utils.mouseMove(plotBackendWidget, pos=end)
+        qapp.processEvents()
+        qapp_utils.mouseRelease(plotBackendWidget, qt.Qt.LeftButton, pos=end)
+        qapp.processEvents()
 
-        pos0 = xCenter, yCenter
-        pos1 = xCenter + offset, yCenter + offset
 
-        self.mouseMove(plot, pos=(0, 0))
-        self.mouseMove(plot, pos=pos0)
-        self.qapp.processEvents()
-        self.mousePress(plot, qt.Qt.LeftButton, pos=pos0)
-        self.qapp.processEvents()
-        self.mouseMove(plot, pos=(pos0[0] + offset // 2, pos0[1] + offset // 2))
-        self.mouseMove(plot, pos=pos1)
-        self.qapp.processEvents()
-        self.mouseRelease(plot, qt.Qt.LeftButton, pos=pos1)
-        self.qapp.processEvents()
-        self.mouseMove(plot, pos=(0, 0))
-
-    def _drawPolygon(self):
-        """Draw a star polygon in the plot"""
-        plot = self.plot.getWidgetHandle()
-        x, y = plot.width() // 2, plot.height() // 2
-        offset = min(plot.width(), plot.height()) // 10
-
-        star = [
-            (x, y + offset),
-            (x - offset, y - offset),
-            (x + offset, y),
-            (x - offset, y),
-            (x + offset, y - offset),
-            (x, y + offset),
-        ]  # Close polygon
-
-        self.mouseMove(plot, pos=(0, 0))
-        for pos in star:
-            self.mouseMove(plot, pos=pos)
-            self.qapp.processEvents()
-            self.mousePress(plot, qt.Qt.LeftButton, pos=pos)
-            self.qapp.processEvents()
-            self.mouseRelease(plot, qt.Qt.LeftButton, pos=pos)
-            self.qapp.processEvents()
-
-    def _drawPencil(self):
-        """Draw a star polygon in the plot"""
-        plot = self.plot.getWidgetHandle()
-        x, y = plot.width() // 2, plot.height() // 2
-        offset = min(plot.width(), plot.height()) // 10
-
-        star = [
-            (x, y + offset),
-            (x - offset, y - offset),
-            (x + offset, y),
-            (x - offset, y),
-            (x + offset, y - offset),
-        ]
-
-        self.mouseMove(plot, pos=(0, 0))
-        for start, end in zip(star[:-1], star[1:]):
-            self.mouseMove(plot, pos=start)
-            self.mousePress(plot, qt.Qt.LeftButton, pos=start)
-            self.qapp.processEvents()
-            self.mouseMove(plot, pos=end)
-            self.qapp.processEvents()
-            self.mouseRelease(plot, qt.Qt.LeftButton, pos=end)
-            self.qapp.processEvents()
-
-    def _isMaskItemSync(self):
-        """Check if masks from item and tools are sync or not"""
-        if self.maskWidget.isItemMaskUpdated():
-            return numpy.all(
-                numpy.equal(
-                    self.maskWidget.getSelectionMask(),
-                    self.plot.getActiveImage().getMaskData(copy=False),
-                )
+def _isMaskItemSync(maskWidget, plotWidget):
+    """Check if masks from item and tools are sync or not"""
+    if maskWidget.isItemMaskUpdated():
+        return numpy.all(
+            numpy.equal(
+                maskWidget.getSelectionMask(),
+                plotWidget.getActiveImage().getMaskData(copy=False),
             )
-        else:
-            return True
-
-    def testWithAnImage(self):
-        """Plot with an image: test MaskToolsWidget interactions"""
-
-        # Add and remove a image (this should enable/disable GUI + change mask)
-        self.plot.addImage(
-            numpy.random.random(1024**2).reshape(1024, 1024), legend="test"
         )
-        self.qapp.processEvents()
+    return True
 
-        self.plot.remove("test", kind="image")
-        self.qapp.processEvents()
 
-        tests = [
-            ((0, 0), (1, 1)),
-            ((1000, 1000), (1, 1)),
-            ((0, 0), (-1, -1)),
-            ((1000, 1000), (-1, -1)),
-        ]
+def testEmptyPlot(qapp, qWidgetFactory):
+    """Empty plot, display MaskToolsDockWidget, toggle multiple masks"""
+    plot = qWidgetFactory(PlotWindow)
 
-        for itemMaskUpdated in (False, True):
-            for origin, scale in tests:
-                with self.subTest(origin=origin, scale=scale):
-                    self.maskWidget.setItemMaskUpdated(itemMaskUpdated)
-                    self.plot.addImage(
-                        numpy.arange(1024**2).reshape(1024, 1024),
-                        legend="test",
-                        origin=origin,
-                        scale=scale,
-                    )
-                    self.qapp.processEvents()
+    maskDock = MaskToolsWidget.MaskToolsDockWidget(plot=plot, name="TEST")
+    plot.addDockWidget(qt.Qt.BottomDockWidgetArea, maskDock)
+    maskWidget = maskDock.widget()
 
-                    self.assertEqual(
-                        self.maskWidget.isItemMaskUpdated(), itemMaskUpdated
-                    )
+    maskWidget.setMultipleMasks("single")
+    qapp.processEvents()
 
-                    # Test draw rectangle #
-                    toolButton = getQToolButtonFromAction(self.maskWidget.rectAction)
-                    self.assertIsNot(toolButton, None)
-                    self.mouseClick(toolButton, qt.Qt.LeftButton)
+    maskWidget.setMultipleMasks("exclusive")
+    qapp.processEvents()
 
-                    # mask
-                    self.maskWidget.maskStateGroup.button(1).click()
-                    self.qapp.processEvents()
-                    self._drag()
-                    self.assertFalse(
-                        numpy.all(numpy.equal(self.maskWidget.getSelectionMask(), 0))
-                    )
-                    self.assertTrue(self._isMaskItemSync())
 
-                    # unmask same region
-                    self.maskWidget.maskStateGroup.button(0).click()
-                    self.qapp.processEvents()
-                    self._drag()
-                    self.assertTrue(
-                        numpy.all(numpy.equal(self.maskWidget.getSelectionMask(), 0))
-                    )
-                    self.assertTrue(self._isMaskItemSync())
+@pytest.mark.parametrize("itemMaskUpdated", [False, True])
+@pytest.mark.parametrize("origin,scale", [
+    ((0, 0), (1, 1)),
+    ((1000, 1000), (1, 1)),
+    ((0, 0), (-1, -1)),
+    ((1000, 1000), (-1, -1)),
+])
+def testWithAnImage(qapp, qapp_utils, qWidgetFactory, origin, scale, itemMaskUpdated):
+    """Plot with an image: test MaskToolsWidget interactions"""
+    plot = qWidgetFactory(PlotWindow)
 
-                    # Test draw polygon #
-                    toolButton = getQToolButtonFromAction(self.maskWidget.polygonAction)
-                    self.assertIsNot(toolButton, None)
-                    self.mouseClick(toolButton, qt.Qt.LeftButton)
+    maskDock = MaskToolsWidget.MaskToolsDockWidget(plot=plot, name="TEST")
+    plot.addDockWidget(qt.Qt.BottomDockWidgetArea, maskDock)
+    maskWidget = maskDock.widget()
 
-                    # mask
-                    self.maskWidget.maskStateGroup.button(1).click()
-                    self.qapp.processEvents()
-                    self._drawPolygon()
-                    self.assertFalse(
-                        numpy.all(numpy.equal(self.maskWidget.getSelectionMask(), 0))
-                    )
-                    self.assertTrue(self._isMaskItemSync())
+    # Add and remove a image (this should enable/disable GUI + change mask)
+    plot.addImage(
+        numpy.random.random(1024**2).reshape(1024, 1024), legend="test"
+    )
+    qapp.processEvents()
 
-                    # unmask same region
-                    self.maskWidget.maskStateGroup.button(0).click()
-                    self.qapp.processEvents()
-                    self._drawPolygon()
-                    self.assertTrue(
-                        numpy.all(numpy.equal(self.maskWidget.getSelectionMask(), 0))
-                    )
-                    self.assertTrue(self._isMaskItemSync())
+    plot.remove("test", kind="image")
+    qapp.processEvents()
 
-                    # Test draw pencil #
-                    toolButton = getQToolButtonFromAction(self.maskWidget.pencilAction)
-                    self.assertIsNot(toolButton, None)
-                    self.mouseClick(toolButton, qt.Qt.LeftButton)
+    maskWidget.setItemMaskUpdated(itemMaskUpdated)
+    plot.addImage(
+        numpy.arange(1024**2).reshape(1024, 1024),
+        legend="test",
+        origin=origin,
+        scale=scale,
+    )
+    qapp.processEvents()
 
-                    self.maskWidget.pencilSpinBox.setValue(30)
-                    self.qapp.processEvents()
+    assert maskWidget.isItemMaskUpdated() == itemMaskUpdated
 
-                    # mask
-                    self.maskWidget.maskStateGroup.button(1).click()
-                    self.qapp.processEvents()
-                    self._drawPencil()
-                    self.assertFalse(
-                        numpy.all(numpy.equal(self.maskWidget.getSelectionMask(), 0))
-                    )
-                    self.assertTrue(self._isMaskItemSync())
+    # Test draw rectangle #
+    toolButton = getQToolButtonFromAction(maskWidget.rectAction)
+    assert toolButton is not None
+    qapp_utils.mouseClick(toolButton, qt.Qt.LeftButton)
 
-                    # unmask same region
-                    self.maskWidget.maskStateGroup.button(0).click()
-                    self.qapp.processEvents()
-                    self._drawPencil()
-                    self.assertTrue(
-                        numpy.all(numpy.equal(self.maskWidget.getSelectionMask(), 0))
-                    )
-                    self.assertTrue(self._isMaskItemSync())
+    # mask
+    maskWidget.maskStateGroup.button(1).click()
+    qapp.processEvents()
+    _drag(qapp, qapp_utils, plot)
+    assert not numpy.all(numpy.equal(self.maskWidget.getSelectionMask(), 0))
+    assert _isMaskItemSync(maskWidget, plot)
 
-                    # Test no draw tool #
-                    toolButton = getQToolButtonFromAction(self.maskWidget.browseAction)
-                    self.assertIsNot(toolButton, None)
-                    self.mouseClick(toolButton, qt.Qt.LeftButton)
+    # unmask same region
+    maskWidget.maskStateGroup.button(0).click()
+    qapp.processEvents()
+    _drag(qapp, qapp_utils, plot)
+    assert numpy.all(numpy.equal(maskWidget.getSelectionMask(), 0))
+    assert _isMaskItemSync(maskWidget, plot)
 
-                    self.plot.clear()
+    # Test draw polygon #
+    toolButton = getQToolButtonFromAction(maskWidget.polygonAction)
+    assert toolButton is not None
+    qapp_utils.mouseClick(toolButton, qt.Qt.LeftButton)
 
-    def __loadSave(self, file_format):
-        """Plot with an image: test MaskToolsWidget operations"""
-        self.plot.addImage(numpy.arange(1024**2).reshape(1024, 1024), legend="test")
-        self.qapp.processEvents()
+    # mask
+    maskWidget.maskStateGroup.button(1).click()
+    qapp.processEvents()
+    _drawPolygon(qapp, qapp_utils, plot)
+    assert not numpy.all(numpy.equal(maskWidget.getSelectionMask(), 0))
+    assert _isMaskItemSync(maskWidget, plot)
 
-        # Draw a polygon mask
-        toolButton = getQToolButtonFromAction(self.maskWidget.polygonAction)
-        self.assertIsNot(toolButton, None)
-        self.mouseClick(toolButton, qt.Qt.LeftButton)
-        self._drawPolygon()
+    # unmask same region
+    maskWidget.maskStateGroup.button(0).click()
+    qapp.processEvents()
+    _drawPolygon(qapp, qapp_utils, plot)
+    assert numpy.all(numpy.equal(maskWidget.getSelectionMask(), 0))
+    assert _isMaskItemSync(maskWidget, plot)
 
-        ref_mask = self.maskWidget.getSelectionMask()
-        self.assertFalse(numpy.all(numpy.equal(ref_mask, 0)))
+    # Test draw pencil #
+    toolButton = getQToolButtonFromAction(maskWidget.pencilAction)
+    assert toolButton is not None
+    qapp_utils.mouseClick(toolButton, qt.Qt.LeftButton)
 
-        with temp_dir() as tmp:
-            mask_filename = os.path.join(tmp, "mask." + file_format)
-            self.maskWidget.save(mask_filename, file_format)
+    maskWidget.pencilSpinBox.setValue(30)
+    qapp.processEvents()
 
-            self.maskWidget.resetSelectionMask()
-            self.assertTrue(
-                numpy.all(numpy.equal(self.maskWidget.getSelectionMask(), 0))
-            )
+    # mask
+    maskWidget.maskStateGroup.button(1).click()
+    qapp.processEvents()
+    _drawPencil(qapp, qapp_utils, plot)
+    assert not numpy.all(numpy.equal(maskWidget.getSelectionMask(), 0))
+    assert _isMaskItemSync(maskWidget, plot)
 
-            self.maskWidget.load(mask_filename)
-            self.assertTrue(
-                numpy.all(numpy.equal(self.maskWidget.getSelectionMask(), ref_mask))
-            )
+    # unmask same region
+    maskWidget.maskStateGroup.button(0).click()
+    qapp.processEvents()
+    _drawPencil(qapp, qapp_utils, plot)
+    assert numpy.all(numpy.equal(maskWidget.getSelectionMask(), 0))
+    assert _isMaskItemSync(maskWidget, plot)
 
-    def testLoadSaveNpy(self):
-        self.__loadSave("npy")
+    # Test no draw tool #
+    toolButton = getQToolButtonFromAction(maskWidget.browseAction)
+    assert toolButton is not None
+    qapp_utils.mouseClick(toolButton, qt.Qt.LeftButton)
 
-    def testLoadSaveFit2D(self):
-        self.__loadSave("msk")
+    plot.clear()
 
-    def testSigMaskChangedEmitted(self):
-        self.plot.addImage(numpy.arange(512**2).reshape(512, 512), legend="test")
-        self.plot.resetZoom()
-        self.qapp.processEvents()
 
-        l = []
+@pytest.mark.parametrize("file_format", ["npy", "msk"])
+def testloadSave(file_format, tmp_path, qapp, qapp_utils, qWidgetFactory):
+    """Plot with an image: test MaskToolsWidget operations"""
+    plot = qWidgetFactory(PlotWindow)
 
-        def slot():
-            l.append(1)
+    maskDock = MaskToolsWidget.MaskToolsDockWidget(plot=plot, name="TEST")
+    plot.addDockWidget(qt.Qt.BottomDockWidgetArea, maskDock)
+    maskWidget = maskDock.widget()
 
-        self.maskWidget.sigMaskChanged.connect(slot)
+    plot.addImage(numpy.arange(1024**2).reshape(1024, 1024), legend="test")
+    qapp.processEvents()
 
-        # rectangle mask
-        toolButton = getQToolButtonFromAction(self.maskWidget.rectAction)
-        self.assertIsNot(toolButton, None)
-        self.mouseClick(toolButton, qt.Qt.LeftButton)
-        self.maskWidget.maskStateGroup.button(1).click()
-        self.qapp.processEvents()
-        self._drag()
+    # Draw a polygon mask
+    toolButton = getQToolButtonFromAction(maskWidget.polygonAction)
+    assert toolButton is not None
+    qapp_utils.mouseClick(toolButton, qt.Qt.LeftButton)
+    _drawPolygon(qapp, qapp_utils, plot)
 
-        self.assertGreater(len(l), 0)
+    ref_mask = maskWidget.getSelectionMask()
+    assert not numpy.all(numpy.equal(ref_mask, 0))
+
+    mask_filename = str(tmp_path / f"mask.{file_format}")
+    maskWidget.save(mask_filename, file_format)
+
+    maskWidget.resetSelectionMask()
+    assert numpy.all(numpy.equal(maskWidget.getSelectionMask(), 0))
+
+    maskWidget.load(mask_filename)
+    assert numpy.all(numpy.equal(maskWidget.getSelectionMask(), ref_mask))
+
+
+def testSigMaskChangedEmitted(qapp, qapp_utils, qWidgetFactory):
+    plot = qWidgetFactory(PlotWindow)
+
+    maskDock = MaskToolsWidget.MaskToolsDockWidget(plot=plot, name="TEST")
+    plot.addDockWidget(qt.Qt.BottomDockWidgetArea, maskDock)
+    maskWidget = maskDock.widget()
+
+    plot.addImage(numpy.arange(512**2).reshape(512, 512), legend="test")
+    plot.resetZoom()
+    qapp.processEvents()
+
+    l = []
+
+    def slot():
+        l.append(1)
+
+    maskWidget.sigMaskChanged.connect(slot)
+
+    # rectangle mask
+    toolButton = getQToolButtonFromAction(maskWidget.rectAction)
+    assert toolButton is not None
+    qapp_utils.mouseClick(toolButton, qt.Qt.LeftButton)
+    maskWidget.maskStateGroup.button(1).click()
+    qapp.processEvents()
+    _drag(qapp, qapp_utils, plot)
+
+    assert len(l) > 0

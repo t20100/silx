@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2016-2022 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2024 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -25,10 +25,7 @@ __authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "19/02/2019"
 
-import os
-import tempfile
 import pytest
-from contextlib import contextmanager
 
 import numpy
 from ..DataViewer import DataViewer
@@ -42,6 +39,7 @@ from silx.gui.utils.testutils import SignalListener
 from silx.gui.utils.testutils import TestCaseQt
 
 import h5py
+import pytest
 
 
 class _DataViewMock(DataView):
@@ -66,21 +64,6 @@ class _TestAbstractDataViewer(TestCaseQt):
     def create_widget(self):
         # Avoid to raise an error when testing the full module
         self.skipTest("Not implemented")
-
-    @contextmanager
-    def h5_temporary_file(self):
-        # create tmp file
-        fd, tmp_name = tempfile.mkstemp(suffix=".h5")
-        os.close(fd)
-        data = numpy.arange(3 * 3 * 3)
-        data.shape = 3, 3, 3
-        # create h5 data
-        h5file = h5py.File(tmp_name, "w")
-        h5file["data"] = data
-        yield h5file
-        # clean up
-        h5file.close()
-        os.unlink(tmp_name)
 
     def test_text_data(self):
         data_list = ["aaa", int, 8, self]
@@ -166,12 +149,6 @@ class _TestAbstractDataViewer(TestCaseQt):
         widget = self.create_widget()
         widget.setData(data)
         self.assertEqual(DataViews.RAW_MODE, widget.displayedView().modeId())
-
-    def test_3d_h5_dataset(self):
-        with self.h5_temporary_file() as h5file:
-            dataset = h5file["data"]
-            widget = self.create_widget()
-            widget.setData(dataset)
 
     def test_data_event(self):
         listener = SignalListener()
@@ -276,6 +253,15 @@ class TestDataViewerFrame(_TestAbstractDataViewer):
 
     def create_widget(self):
         return DataViewerFrame()
+
+
+@pytest.mark.parametrize("viewerClass", [DataViewer, DataViewerFrame])
+def test_3d_h5_dataset(tmp_path, qWidgetFactory, viewerClass):
+    widget = qWidgetFactory(viewerClass)
+
+    with h5py.File(tmp_path / "test.h5", "w") as h5file:
+        h5file["data"] = numpy.arange(3 * 3 * 3).reshape(3, 3, 3)
+        widget.setData(h5file["data"])
 
 
 class TestDataView(TestCaseQt):

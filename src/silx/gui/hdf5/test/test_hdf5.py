@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2016-2023 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2024 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -30,10 +30,8 @@ __date__ = "12/03/2019"
 
 import time
 import os
-import tempfile
 import numpy
 from packaging.version import Version
-from contextlib import contextmanager
 from silx.gui import qt
 from silx.gui.utils.testutils import TestCaseQt
 from silx.gui import hdf5
@@ -79,20 +77,6 @@ class TestHdf5TreeModel(TestCaseQt):
             self.qWait(200)
         else:
             raise RuntimeError("Still waiting for a pending operation")
-
-    @contextmanager
-    def h5TempFile(self):
-        # create tmp file
-        fd, tmp_name = tempfile.mkstemp(suffix=".h5")
-        os.close(fd)
-        # create h5 data
-        h5file = h5py.File(tmp_name, "w")
-        g = h5file.create_group("arrays")
-        g.create_dataset("scalar", data=10)
-        h5file.close()
-        yield tmp_name
-        # clean up
-        os.unlink(tmp_name)
 
     def testCreate(self):
         model = hdf5.Hdf5TreeModel()

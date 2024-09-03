@@ -1,5 +1,5 @@
 # /*##########################################################################
-# Copyright (C) 2016-2017 European Synchrotron Radiation Facility
+# Copyright (C) 2016-2024 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -26,13 +26,10 @@ __authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "21/09/2017"
 
-import logging
 import numpy
 import unittest
 import tempfile
 import shutil
-
-_logger = logging.getLogger(__name__)
 
 import silx.io
 import silx.io.utils

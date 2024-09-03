@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2016-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2024 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -24,10 +24,6 @@
 __authors__ = ["V. Valls"]
 __license__ = "MIT"
 __date__ = "29/01/2018"
-
-import os
-import tempfile
-from contextlib import contextmanager
 
 import numpy
 
@@ -99,32 +95,6 @@ class TestNumpyAxesSelector(TestCaseQt):
         result = widget.selectedData()
         self.assertTrue(numpy.array_equal(result, expectedResult))
 
-    @contextmanager
-    def h5_temporary_file(self):
-        # create tmp file
-        fd, tmp_name = tempfile.mkstemp(suffix=".h5")
-        os.close(fd)
-        data = numpy.arange(3 * 3 * 3)
-        data.shape = 3, 3, 3
-        # create h5 data
-        h5file = h5py.File(tmp_name, "w")
-        h5file["data"] = data
-        yield h5file
-        # clean up
-        h5file.close()
-        os.unlink(tmp_name)
-
-    def test_h5py_dataset(self):
-        with self.h5_temporary_file() as h5file:
-            dataset = h5file["data"]
-            expectedResult = dataset[0]
-
-            widget = NumpyAxesSelector()
-            widget.setData(dataset)
-            widget.setAxisNames(["y", "x"])
-            result = widget.selectedData()
-            self.assertTrue(numpy.array_equal(result, expectedResult))
-
     def test_data_event(self):
         data = numpy.arange(3 * 3 * 3)
         widget = NumpyAxesSelector()
@@ -145,3 +115,17 @@ class TestNumpyAxesSelector(TestCaseQt):
         widget.setData(None)
         self.assertEqual(listener.callCount(), 3)
         listener.clear()
+
+
+def test_h5py_dataset(tmp_path, qWidgetFactory):
+    widget = qWidgetFactory(NumpyAxesSelector)
+
+    with h5py.File(tmp_path / "test.h5", "w") as h5file:
+        h5file["data"] = numpy.arange(3 * 3 * 3).reshape(3, 3, 3)
+
+        widget.setData(h5file["data"])
+        widget.setAxisNames(["y", "x"])
+
+        result = widget.selectedData()
+        expectedResult = h5file["data"][0]
+        assert numpy.array_equal(result, expectedResult)

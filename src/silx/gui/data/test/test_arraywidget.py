@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2016-2021 European Synchrotron Radiation Facility
+# Copyright (c) 2016-2024 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -25,9 +25,6 @@ __authors__ = ["P. Knobel"]
 __license__ = "MIT"
 __date__ = "05/12/2016"
 
-import os
-import tempfile
-
 import numpy
 
 from silx.gui import qt
@@ -36,6 +33,7 @@ from silx.gui.data.ArrayTableModel import ArrayTableModel
 from silx.gui.utils.testutils import TestCaseQt
 
 import h5py
+import pytest
 
 
 class TestArrayWidget(TestCaseQt):
@@ -192,116 +190,98 @@ class TestArrayWidget(TestCaseQt):
                 self.qapp.processEvents()
 
 
-class TestH5pyArrayWidget(TestCaseQt):
-    """Basic test for ArrayTableWidget with a dataset.
+def testReadOnly(tmp_path, qWidgetFactory):
+    """Open H5 dataset in read-only mode, ensure the model is not editable."""
+    data = numpy.reshape(numpy.linspace(0.213, 1.234, 1000), (10, 10, 10))
+    with h5py.File(tmp_path / "array.h5", mode="w") as h5f:
+        h5f["my_array"] = data
 
-    Test flags, for dataset open in read-only or read-write modes"""
+    arrayTableWidget = qWidgetFactory(ArrayTableWidget.ArrayTableWidget)
 
-    def setUp(self):
-        super(TestH5pyArrayWidget, self).setUp()
-        self.aw = ArrayTableWidget.ArrayTableWidget()
-        self.data = numpy.reshape(numpy.linspace(0.213, 1.234, 1000), (10, 10, 10))
-        # create an h5py file with a dataset
-        self.tempdir = tempfile.mkdtemp()
-        self.h5_fname = os.path.join(self.tempdir, "array.h5")
-        h5f = h5py.File(self.h5_fname, mode="w")
-        h5f["my_array"] = self.data
-        h5f["my_scalar"] = 3.14
-        h5f["my_1D_array"] = numpy.array(numpy.arange(1000))
-        h5f.close()
-
-    def tearDown(self):
-        del self.aw
-        os.unlink(self.h5_fname)
-        os.rmdir(self.tempdir)
-        super(TestH5pyArrayWidget, self).tearDown()
-
-    def testShow(self):
-        self.aw.show()
-        self.qWaitForWindowExposed(self.aw)
-
-    def testReadOnly(self):
-        """Open H5 dataset in read-only mode, ensure the model is not editable."""
-        h5f = h5py.File(self.h5_fname, "r")
-        a = h5f["my_array"]
+    with h5py.File(tmp_path / "array.h5", "r") as h5f:
         # ArrayTableModel relies on following condition
-        self.assertTrue(a.file.mode == "r")
+        assert h5f["my_array"].file.mode == "r"
 
-        self.aw.setArrayData(a, copy=False, editable=True)
+        arrayTableWidget.setArrayData(h5f["my_array"], copy=False, editable=True)
 
-        self.assertIsInstance(a, h5py.Dataset)  # simple sanity check
+        assert isinstance(h5f["my_array"], h5py.Dataset)  # simple sanity check
         # internal representation must be a reference to original data (copy=False)
-        self.assertIsInstance(self.aw.model._array, h5py.Dataset)
-        self.assertTrue(self.aw.model._array.file.mode == "r")
+        assert isinstance(arrayTableWidget.model._array, h5py.Dataset)
+        assert arrayTableWidget.model._array.file.mode == "r"
 
-        b = self.aw.getData()
-        self.assertTrue(numpy.array_equal(self.data, b))
+        assert numpy.array_equal(data, arrayTableWidget.getData())
 
         # model must have detected read-only dataset and disabled editing
-        self.assertFalse(self.aw.model._editable)
-        idx = self.aw.model.createIndex(0, 0)
-        self.assertFalse(self.aw.model.flags(idx) & qt.Qt.ItemIsEditable)
+        assert not arrayTableWidget.model._editable
+        idx = arrayTableWidget.model.createIndex(0, 0)
+        assert not (arrayTableWidget.model.flags(idx) & qt.Qt.ItemIsEditable)
 
         # force editing read-only datasets raises IOError
-        self.assertRaises(
-            IOError, self.aw.model.setData, idx, 123.4, role=qt.Qt.EditRole
-        )
-        h5f.close()
+        with pytest.raises(IOError):
+            arrayTableWidget.model.setData(idx, 123.4, role=qt.Qt.EditRole)
 
-    def testReadWrite(self):
-        h5f = h5py.File(self.h5_fname, "r+")
-        a = h5f["my_array"]
-        self.assertTrue(a.file.mode == "r+")
 
-        self.aw.setArrayData(a, copy=False, editable=True)
-        b = self.aw.getData(copy=False)
-        self.assertTrue(numpy.array_equal(self.data, b))
+def testReadWrite(tmp_path, qWidgetFactory):
+    data = numpy.reshape(numpy.linspace(0.213, 1.234, 1000), (10, 10, 10))
+    with h5py.File(tmp_path / "array.h5", mode="w") as h5f:
+        h5f["my_array"] = data
 
-        idx = self.aw.model.createIndex(0, 0)
+    arrayTableWidget = qWidgetFactory(ArrayTableWidget.ArrayTableWidget)
+
+    with h5py.File(tmp_path / "array.h5", "r+") as h5f:
+        assert h5f["my_array"].file.mode == "r+"
+
+        arrayTableWidget.setArrayData(h5f["my_array"], copy=False, editable=True)
+        assert numpy.array_equal(data, arrayTableWidget.getData(copy=False))
+
+        idx = arrayTableWidget.model.createIndex(0, 0)
         # model is editable
-        self.assertTrue(self.aw.model.flags(idx) & qt.Qt.ItemIsEditable)
-        h5f.close()
+        assert (arrayTableWidget.model.flags(idx) & qt.Qt.ItemIsEditable)
 
-    def testSetData0D(self):
-        h5f = h5py.File(self.h5_fname, "r+")
-        a = h5f["my_scalar"]
-        self.aw.setArrayData(a)
-        b = self.aw.getData(copy=True)
 
-        self.assertTrue(numpy.array_equal(a, b))
+def testSetData0D(tmp_path, qWidgetFactory):
+    with h5py.File(tmp_path / "array.h5", mode="w") as h5f:
+        h5f["my_scalar"] = 3.14
 
-        h5f.close()
+    arrayTableWidget = qWidgetFactory(ArrayTableWidget.ArrayTableWidget)
 
-    def testSetData1D(self):
-        h5f = h5py.File(self.h5_fname, "r+")
-        a = h5f["my_1D_array"]
-        self.aw.setArrayData(a)
-        b = self.aw.getData(copy=True)
+    with h5py.File(tmp_path / "array.h5", "r+") as h5f:
+        arrayTableWidget.setArrayData(h5f["my_scalar"])
+        assert numpy.array_equal(h5f["my_scalar"], arrayTableWidget.getData(copy=True))
 
-        self.assertTrue(numpy.array_equal(a, b))
 
-        h5f.close()
+def testSetData1D(tmp_path, qWidgetFactory):
+    with h5py.File(tmp_path / "array.h5", mode="w") as h5f:
+        h5f["my_1D_array"] = numpy.array(numpy.arange(1000))
 
-    def testReferenceReturned(self):
-        """when setting the data with copy=False and
-        retrieving it with getData(copy=False), we should recover
-        the same original object.
+    arrayTableWidget = qWidgetFactory(ArrayTableWidget.ArrayTableWidget)
 
-        This only works for array with at least 2D. For 1D and 0D
-        arrays, a view is created at some point, which  in the case
-        of an hdf5 dataset creates a copy."""
-        h5f = h5py.File(self.h5_fname, "r+")
+    with h5py.File(tmp_path / "array.h5", "r+") as h5f:
+        arrayTableWidget.setArrayData(h5f["my_1D_array"])
 
+        assert numpy.array_equal(h5f["my_1D_array"], arrayTableWidget.getData(copy=True))
+
+
+def testReferenceReturned(tmp_path, qWidgetFactory):
+    """when setting the data with copy=False and
+    retrieving it with getData(copy=False), we should recover
+    the same original object.
+
+    This only works for array with at least 2D. For 1D and 0D
+    arrays, a view is created at some point, which  in the case
+    of an hdf5 dataset creates a copy."""
+    data = numpy.reshape(numpy.linspace(0.213, 1.234, 1000), (10, 10, 10))
+    with h5py.File(tmp_path / "array.h5", mode="w") as h5f:
+        h5f["my_array"] = data
+        h5f["my_1D_array"] = numpy.array(numpy.arange(1000))
+
+    arrayTableWidget = qWidgetFactory(ArrayTableWidget.ArrayTableWidget)
+
+    with h5py.File(tmp_path / "array.h5", "r+") as h5f:
         # n-D
-        a0 = h5f["my_array"]
-        self.aw.setArrayData(a0, copy=False)
-        a1 = self.aw.getData(copy=False)
-        self.assertIs(a0, a1)
+        arrayTableWidget.setArrayData(h5f["my_array"], copy=False)
+        assert h5f["my_array"] is arrayTableWidget.getData(copy=False)
 
         # 1D
-        b0 = h5f["my_1D_array"]
-        self.aw.setArrayData(b0, copy=False)
-        b1 = self.aw.getData(copy=False)
-        self.assertIs(b0, b1)
-
-        h5f.close()
+        arrayTableWidget.setArrayData(h5f["my_1D_array"], copy=False)
+        assert h5f["my_1D_array"] is arrayTableWidget.getData(copy=False)

@@ -1,6 +1,6 @@
 # /*##########################################################################
 #
-# Copyright (c) 2017-2019 European Synchrotron Radiation Facility
+# Copyright (c) 2017-2024 European Synchrotron Radiation Facility
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -28,104 +28,85 @@ __license__ = "MIT"
 __date__ = "28/11/2017"
 
 
-import unittest
-import tempfile
-import os
-
-from silx.gui.plot.test.utils import PlotWidgetTestCase
-
 from silx.gui.plot import PlotWidget
 from silx.gui.plot.actions.io import SaveAction
 
 
-class TestSaveActionSaveCurvesAsSpec(unittest.TestCase):
-    def setUp(self):
-        self.plot = PlotWidget(backend="none")
-        self.saveAction = SaveAction(plot=self.plot)
+def testSaveMultipleCurvesAsSpec(tmp_path, qWidgetFactory):
+    """Test that labels are properly used."""
+    plot = qWidgetFactory(PlotWidget, backend="none")
+    saveAction = SaveAction(plot=plot)
 
-        self.tempdir = tempfile.mkdtemp()
-        self.out_fname = os.path.join(self.tempdir, "out.dat")
+    outPath = tmp_path / "out.dat"
 
-    def tearDown(self):
-        os.unlink(self.out_fname)
-        os.rmdir(self.tempdir)
+    plot.setGraphXLabel("graph x label")
+    plot.setGraphYLabel("graph y label")
 
-    def testSaveMultipleCurvesAsSpec(self):
-        """Test that labels are properly used."""
-        self.plot.setGraphXLabel("graph x label")
-        self.plot.setGraphYLabel("graph y label")
+    plot.addCurve(
+        [0, 1], [1, 2], "curve with labels", xlabel="curve0 X", ylabel="curve0 Y"
+    )
+    plot.addCurve([-1, 3], [-6, 2], "curve with X label", xlabel="curve1 X")
+    plot.addCurve([-2, 0], [8, 12], "curve with Y label", ylabel="curve2 Y")
+    plot.addCurve([3, 1], [7, 6], "curve with no labels")
 
-        self.plot.addCurve(
-            [0, 1], [1, 2], "curve with labels", xlabel="curve0 X", ylabel="curve0 Y"
-        )
-        self.plot.addCurve([-1, 3], [-6, 2], "curve with X label", xlabel="curve1 X")
-        self.plot.addCurve([-2, 0], [8, 12], "curve with Y label", ylabel="curve2 Y")
-        self.plot.addCurve([3, 1], [7, 6], "curve with no labels")
+    saveAction._saveCurves(
+        plot, str(outPath), SaveAction.DEFAULT_ALL_CURVES_FILTERS[0]
+    )  # "All curves as SpecFile (*.dat)"
 
-        self.saveAction._saveCurves(
-            self.plot, self.out_fname, SaveAction.DEFAULT_ALL_CURVES_FILTERS[0]
-        )  # "All curves as SpecFile (*.dat)"
+    with open(outPath, "rb") as f:
+        file_content = f.read()
+        if hasattr(file_content, "decode"):
+            file_content = file_content.decode()
 
-        with open(self.out_fname, "rb") as f:
-            file_content = f.read()
-            if hasattr(file_content, "decode"):
-                file_content = file_content.decode()
+        # case with all curve labels specified
+        assert "#S 1 curve0 Y" in file_content
+        assert "#L curve0 X  curve0 Y" in file_content
 
-            # case with all curve labels specified
-            self.assertIn("#S 1 curve0 Y", file_content)
-            self.assertIn("#L curve0 X  curve0 Y", file_content)
+        # graph X&Y labels are used when no curve label is specified
+        assert "#S 2 graph y label" in file_content
+        assert "#L curve1 X  graph y label" in file_content
 
-            # graph X&Y labels are used when no curve label is specified
-            self.assertIn("#S 2 graph y label", file_content)
-            self.assertIn("#L curve1 X  graph y label", file_content)
+        assert "#S 3 curve2 Y" in file_content
+        assert "#L graph x label  curve2 Y" in file_content
 
-            self.assertIn("#S 3 curve2 Y", file_content)
-            self.assertIn("#L graph x label  curve2 Y", file_content)
-
-            self.assertIn("#S 4 graph y label", file_content)
-            self.assertIn("#L graph x label  graph y label", file_content)
+        assert "#S 4 graph y label" in file_content
+        assert "#L graph x label  graph y label" in file_content
 
 
-class TestSaveActionExtension(PlotWidgetTestCase):
-    """Test SaveAction file filter API"""
+def testFileFilterAPI(qWidgetFactory):
+    """Test addition/update of a file filter"""
+    plot = qWidgetFactory(PlotWidget)
+    saveAction = SaveAction(plot=plot, parent=plot)
 
-    def _dummySaveFunction(self, plot, filename, nameFilter):
+    def dummySaveFunction(plot, filename, nameFilter):
         pass
 
-    def testFileFilterAPI(self):
-        """Test addition/update of a file filter"""
-        saveAction = SaveAction(plot=self.plot, parent=self.plot)
+    # Add a new file filter
+    nameFilter = "Dummy file (*.dummy)"
+    saveAction.setFileFilter("all", nameFilter, dummySaveFunction)
+    assert nameFilter in saveAction.getFileFilters("all")
+    assert saveAction.getFileFilters("all")[nameFilter] is dummySaveFunction
 
-        # Add a new file filter
-        nameFilter = "Dummy file (*.dummy)"
-        saveAction.setFileFilter("all", nameFilter, self._dummySaveFunction)
-        self.assertTrue(nameFilter in saveAction.getFileFilters("all"))
-        self.assertEqual(
-            saveAction.getFileFilters("all")[nameFilter], self._dummySaveFunction
-        )
+    # Add a new file filter at a particular position
+    nameFilter = "Dummy file2 (*.dummy)"
+    saveAction.setFileFilter("all", nameFilter, dummySaveFunction, index=3)
+    assert nameFilter in saveAction.getFileFilters("all")
+    filters = saveAction.getFileFilters("all")
+    assert filters[nameFilter] is dummySaveFunction
+    assert list(filters.keys()).index(nameFilter) == 3
 
-        # Add a new file filter at a particular position
-        nameFilter = "Dummy file2 (*.dummy)"
-        saveAction.setFileFilter("all", nameFilter, self._dummySaveFunction, index=3)
-        self.assertTrue(nameFilter in saveAction.getFileFilters("all"))
-        filters = saveAction.getFileFilters("all")
-        self.assertEqual(filters[nameFilter], self._dummySaveFunction)
-        self.assertEqual(list(filters.keys()).index(nameFilter), 3)
+    # Update an existing file filter
+    nameFilter = SaveAction.IMAGE_FILTER_EDF
+    saveAction.setFileFilter("image", nameFilter, dummySaveFunction)
+    assert saveAction.getFileFilters("image")[nameFilter] is dummySaveFunction
 
-        # Update an existing file filter
-        nameFilter = SaveAction.IMAGE_FILTER_EDF
-        saveAction.setFileFilter("image", nameFilter, self._dummySaveFunction)
-        self.assertEqual(
-            saveAction.getFileFilters("image")[nameFilter], self._dummySaveFunction
-        )
-
-        # Change the position of an existing file filter
-        nameFilter = "Dummy file2 (*.dummy)"
-        oldIndex = list(saveAction.getFileFilters("all")).index(nameFilter)
-        newIndex = oldIndex - 1
-        saveAction.setFileFilter(
-            "all", nameFilter, self._dummySaveFunction, index=newIndex
-        )
-        filters = saveAction.getFileFilters("all")
-        self.assertEqual(filters[nameFilter], self._dummySaveFunction)
-        self.assertEqual(list(filters.keys()).index(nameFilter), newIndex)
+    # Change the position of an existing file filter
+    nameFilter = "Dummy file2 (*.dummy)"
+    oldIndex = list(saveAction.getFileFilters("all")).index(nameFilter)
+    newIndex = oldIndex - 1
+    saveAction.setFileFilter(
+        "all", nameFilter, dummySaveFunction, index=newIndex
+    )
+    filters = saveAction.getFileFilters("all")
+    assert filters[nameFilter] is dummySaveFunction
+    assert list(filters.keys()).index(nameFilter) == newIndex
