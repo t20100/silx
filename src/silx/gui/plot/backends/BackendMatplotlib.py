@@ -28,9 +28,12 @@ __license__ = "MIT"
 __date__ = "21/12/2018"
 
 
+from contextlib import contextmanager, nullcontext
+import copy
 from typing import Literal
 import logging
 import datetime as dt
+import warnings
 import numpy
 
 from .utils import Range, ensureAspectRatio, findDimToKeep
@@ -47,6 +50,8 @@ from matplotlib.figure import Figure
 from matplotlib.patches import Rectangle, Polygon
 from matplotlib.image import AxesImage
 from matplotlib.backend_bases import MouseEvent
+from matplotlib.backends.backend_agg import FigureCanvasAgg
+from matplotlib.layout_engine import TightLayoutEngine
 from matplotlib.lines import Line2D
 from matplotlib.text import Text
 from matplotlib.collections import PathCollection, LineCollection
@@ -506,6 +511,131 @@ class Image(AxesImage):
             # Call AxesImage.set_data with small data to set attributes
             super().set_data(numpy.zeros((2, 2, 4), dtype=A.dtype))
             self._A = A  # Override stored data
+
+
+@contextmanager
+def _ignoreNonPositiveLimitsWarning():
+    """Matplotlib ignores non-positive limits on log scale with a warning"""
+    with warnings.catch_warnings():
+        warnings.filterwarnings(
+            "ignore", message="Attempt to set non-positive", category=UserWarning
+        )
+        yield
+
+
+@contextmanager
+def _disabledLayoutEngine(fig: Figure):
+    """Context manager preventing the layout engine to run during draw"""
+    engine = fig.get_layout_engine()
+    fig.set_layout_engine("none")
+    try:
+        yield
+    finally:
+        fig.set_layout_engine(engine)
+
+
+class _OffscreenLayoutSolver:
+    """Solve tight layout with data aspect ratio on an off-screen figure.
+
+    With a layout engine, the size of the axes depends on the extent of the
+    tick labels, which depends on the axes limits, which depend on the size of
+    the axes when the data aspect ratio is kept.
+
+    The off-screen figure replicates only the decorations of the displayed axes
+    (title, axis labels and ticks) and keeps the aspect ratio with matplotlib,
+    so the layout engine accounts for the limits adjusted to the aspect ratio.
+    It holds no data and is never rendered.
+    """
+
+    def __init__(self):
+        self.fig = Figure()
+        FigureCanvasAgg(self.fig)
+        self._engine = TightLayoutEngine()
+        self.fig.set_layout_engine(self._engine)
+
+        self.ax = self.fig.add_subplot(label="left")
+        self.ax2 = self.ax.twinx()
+
+        # Same offset texts as BackendMatplotlib
+        xOffsetText = self.ax.xaxis.get_offset_text()
+        xOffsetText.set_weight("heavy")
+        xOffsetText.set_fontsize(1.1 * xOffsetText.get_fontsize())
+
+        for axis, alignment in ((self.ax.yaxis, "right"), (self.ax2.yaxis, "left")):
+            axis.OFFSETTEXTPAD = 10
+            offsetText = axis.get_offset_text()
+            offsetText.set_weight("heavy")
+            offsetText.set_fontsize(1.1 * offsetText.get_fontsize())
+            offsetText.set_ha(alignment)
+
+    def _synchronize(self, fig: Figure, ax, ax2):
+        """Copy layout-related properties from the given figure and axes"""
+        self.fig.dpi = fig.dpi
+        self.fig.set_size_inches(fig.get_size_inches(), forward=False)
+        self._engine.set(**fig.get_layout_engine().get())
+        # Start from the current layout
+        params = fig.subplotpars
+        self.fig.subplots_adjust(
+            left=params.left, bottom=params.bottom, right=params.right, top=params.top
+        )
+
+        self.ax.set_title(ax.get_title())
+        self.ax.set_xlabel(ax.get_xlabel())
+        self.ax.set_ylabel(ax.get_ylabel())
+        self.ax2.set_ylabel(ax2.get_ylabel())
+        self.ax2.yaxis.set_visible(ax2.yaxis.get_visible())
+
+        # Changing scale resets the tick locators and formatters
+        if self.ax.get_xscale() != ax.get_xscale():
+            self.ax.set_xscale(ax.get_xscale())
+            self.ax2.set_xscale(ax.get_xscale())
+        if self.ax.get_yscale() != ax.get_yscale():
+            self.ax.set_yscale(ax.get_yscale())
+            self.ax2.set_yscale(ax.get_yscale())
+
+        # matplotlib keeps aspect ratio in transformed coordinates, while
+        # BackendMatplotlib does it in data coordinates: only use it for linear axes
+        isLinear = ax.get_xscale() == "linear" and ax.get_yscale() == "linear"
+        self.ax.set_aspect("equal" if isLinear else "auto", adjustable="datalim")
+
+        # X axis is shared between ax and ax2
+        for source, destination in (
+            (ax.xaxis, self.ax.xaxis),
+            (ax.yaxis, self.ax.yaxis),
+            (ax2.yaxis, self.ax2.yaxis),
+        ):
+            locator = copy.copy(source.get_major_locator())
+            formatter = copy.copy(source.get_major_formatter())
+            if isinstance(formatter, NiceAutoDateFormatter):
+                formatter.locator = locator
+            destination.set_major_locator(locator)
+            destination.set_major_formatter(formatter)
+
+        # Copy limits including axes direction, keeping autoscale enabled
+        # so that matplotlib can adjust them to the aspect ratio
+        with _ignoreNonPositiveLimitsWarning():
+            self.ax.set_xlim(ax.get_xlim(), auto=None)
+            self.ax.set_ylim(ax.get_ylim(), auto=None)
+            self.ax2.set_ylim(ax2.get_ylim(), auto=None)
+
+    def solve(self, fig: Figure, ax, ax2) -> dict[str, float]:
+        """Returns the subplot parameters of the layout of the given figure.
+
+        :param fig: The figure to layout
+        :param ax: The left axes of the figure
+        :param ax2: The right axes of the figure
+        """
+        self._synchronize(fig, ax, ax2)
+        with _ignoreNonPositiveLimitsWarning():
+            self._engine.execute(self.fig)
+
+        params = self.fig.subplotpars
+        return {
+            "left": params.left,
+            "bottom": params.bottom,
+            "right": params.right,
+            "top": params.top,
+        }
 
 
 class BackendMatplotlib(BackendBase.BackendBase):
@@ -1436,12 +1566,6 @@ class BackendMatplotlib(BackendBase.BackendBase):
         self._synchronizeForegroundColors()
         self._plot._setDirtyPlot()
 
-    def _getAspectRatio(self) -> float:
-        width, height = self.getPlotBoundsInPixels()[2:]
-        xmin, xmax = self.ax.get_xbound()
-        ymin, ymax = self.ax.get_ybound()
-        return ((xmax - xmin) / width) / ((ymax - ymin) / height)
-
     def _synchronizeBackgroundColors(self):
         backgroundColor = self._plot.getBackgroundColor().getRgbF()
 
@@ -1515,6 +1639,9 @@ class BackendMatplotlibQt(BackendMatplotlib, FigureCanvasQTAgg):
         self._sigPostRedisplay.connect(self.__deferredReplot, qt.Qt.QueuedConnection)
 
         self._picked = None
+
+        self._layoutSolver: _OffscreenLayoutSolver | None = None
+        """Off-screen figure used to layout the plot when keeping aspect ratio"""
 
         self.mpl_connect("button_press_event", self._onMousePress)
         self.mpl_connect("button_release_event", self._onMouseRelease)
@@ -1630,20 +1757,36 @@ class BackendMatplotlibQt(BackendMatplotlib, FigureCanvasQTAgg):
             self.ax.get_xbound(), self.ax.get_ybound(), self.ax2.get_ybound()
         )
 
-    def _fixAspectRatioAfterLayout(self):
-        """Layout engines resize the axes during draw, after the bounds
-        were computed for the previous axes size: recompute them."""
-        if not self.isKeepDataAspectRatio() or self.fig.get_layout_engine() is None:
-            return
-        for _ in range(3):
-            if abs(self._getAspectRatio() - 1.0) < 1e-3:
-                return
-            self._setPlotBounds()
-            try:
-                FigureCanvasQTAgg.draw(self)
-            except ValueError as err:
-                _logger.debug("ValueError caught while redrawing: '%s'", err)
-                return
+    def _updateLayout(self) -> bool:
+        """Layout the figure while keeping the data aspect ratio.
+
+        The layout engine resizes the axes during draw, after the limits were
+        computed for the previous axes size.
+        Instead, the layout and the limits are solved on an off-screen figure
+        and applied to the figure before drawing it.
+
+        :returns: True if the layout was updated, in which case the layout
+            engine must not run during draw.
+        """
+        if (
+            not self.isKeepDataAspectRatio()
+            or not isinstance(self.fig.get_layout_engine(), TightLayoutEngine)
+            or self.ax.get_subplotspec() is None
+        ):
+            return False
+
+        if self._layoutSolver is None:
+            self._layoutSolver = _OffscreenLayoutSolver()
+
+        try:
+            params = self._layoutSolver.solve(self.fig, self.ax, self.ax2)
+        except ValueError as err:
+            _logger.debug("ValueError caught while solving layout: '%s'", err)
+            return False
+
+        self.fig.subplots_adjust(**params)
+        self._setPlotBounds()
+        return True
 
     def draw(self):
         """Overload draw
@@ -1662,17 +1805,21 @@ class BackendMatplotlibQt(BackendMatplotlib, FigureCanvasQTAgg):
             _logger.info("draw requested but widget no longer exists")
             return
 
+        if self._updateLayout():
+            layoutContext = _disabledLayoutEngine(self.fig)
+        else:
+            layoutContext = nullcontext()
+
         # Starting with mpl 2.1.0, toggling autoscale raises a ValueError
         # in some situations. See #1081, #1136, #1163,
         try:
-            FigureCanvasQTAgg.draw(self)
+            with layoutContext:
+                FigureCanvasQTAgg.draw(self)
         except ValueError as err:
             _logger.debug(
                 "ValueError caught while calling FigureCanvasQTAgg.draw: '%s'",
                 err,
             )
-
-        self._fixAspectRatioAfterLayout()
 
         if self._hasOverlays():
             # Save background

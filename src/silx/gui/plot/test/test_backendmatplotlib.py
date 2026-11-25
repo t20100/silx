@@ -2,10 +2,12 @@
 
 import numpy
 import pytest
+from matplotlib.layout_engine import TightLayoutEngine
 
 import silx
 from silx.gui.plot import PlotWidget
 from silx.gui.plot.PlotInteraction import Pan
+from silx.gui.utils.matplotlib import FigureCanvasQTAgg
 
 
 def _getAspectRatio(plot):
@@ -58,3 +60,45 @@ def testKeepAspectRatioWithTightLayoutAfterPan(tightPlot, qapp):
     tightPlot.getWidgetHandle().draw()
 
     assert _getAspectRatio(tightPlot) == pytest.approx(1.0, abs=1e-3)
+
+
+def testSingleDrawWithTightLayout(tightPlot, qapp, monkeypatch):
+    """Layout is solved off-screen: the figure is drawn only once"""
+    backend = tightPlot._backend
+    tightPlot.resize(800, 300)
+    qapp.processEvents()
+
+    nbDraws = 0
+    canvasDraw = FigureCanvasQTAgg.draw
+
+    def countingDraw(canvas):
+        nonlocal nbDraws
+        nbDraws += 1
+        canvasDraw(canvas)
+
+    monkeypatch.setattr(FigureCanvasQTAgg, "draw", countingDraw)
+    tightPlot.resize(300, 600)
+    backend.draw()
+
+    assert nbDraws == 1
+    assert _getAspectRatio(tightPlot) == pytest.approx(1.0, abs=1e-3)
+    # The layout engine is restored after draw
+    assert isinstance(backend.fig.get_layout_engine(), TightLayoutEngine)
+
+
+# Keeping aspect ratio can lead to non-positive limits with log scale
+@pytest.mark.filterwarnings("ignore:Attempt to set non-positive:UserWarning")
+def testKeepAspectRatioWithTightLayoutLogScale(tightPlot, qapp):
+    """Aspect ratio is kept and labels fit in the figure with log scale"""
+    tightPlot.getYAxis().setScale("log")
+    qapp.processEvents()
+    backend = tightPlot._backend
+    backend.draw()
+
+    assert _getAspectRatio(tightPlot) == pytest.approx(1.0, abs=1e-3)
+
+    renderer = backend.fig.canvas.get_renderer()
+    figBBox = backend.fig.bbox
+    axesBBox = backend.ax.get_tightbbox(renderer)
+    assert axesBBox.x0 >= figBBox.x0 and axesBBox.x1 <= figBBox.x1
+    assert axesBBox.y0 >= figBBox.y0 and axesBBox.y1 <= figBBox.y1
